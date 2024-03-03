@@ -1,0 +1,8 @@
+@import 'cell.css';
+@import 'board.css';
+
+
+.board-container {
+    display: grid;
+    gap: 1em;
+}

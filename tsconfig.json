@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "lib": [
+      "ES6",
+      "DOM",
+      "es2019"
+    ],
+    "module": "ESNext",
+    "rootDir": "./src",
+    "moduleResolution": "Node",
+    "declaration": false,  
+    "inlineSourceMap": false,
+    "outDir": "./dist",
+    "strict": true,
+    "skipLibCheck": true
+  }
+}
