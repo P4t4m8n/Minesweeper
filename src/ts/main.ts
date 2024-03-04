@@ -12,7 +12,6 @@ function onInit(): void {
 
 function handleEventListeners(game: Game): void {
 
-    console.log("game:", game)
     const elRestartBtn = document.querySelector('.restart') as HTMLButtonElement
     elRestartBtn.addEventListener('click', () => game.restart())
 

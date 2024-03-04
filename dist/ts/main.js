@@ -5,7 +5,6 @@ function onInit() {
     handleEventListeners(game);
 }
 function handleEventListeners(game) {
-    console.log("game:", game);
     const elRestartBtn = document.querySelector('.restart');
     elRestartBtn.addEventListener('click', () => game.restart());
     const elSizeBtns = document.querySelectorAll('.size-btn');
