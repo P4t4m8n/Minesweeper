@@ -1,7 +1,7 @@
 import { Board } from "./Board.js";
 import { Timer } from "./Timer.js";
 export class Game {
-    constructor(boardSize, mines) {
+    constructor(boardSize = 4, mines = 2) {
         this.isOn = false;
         this.shownCount = 0;
         this.markedCount = 0;
@@ -139,7 +139,7 @@ export class Game {
         if (this.lives <= 0)
             this.gameOver(false);
     }
-    restart() {
+    restart(boardSize = this.size, mines = this.mines) {
         this.isOn = false;
         this.shownCount = 0;
         this.markedCount = 0;
@@ -147,11 +147,10 @@ export class Game {
         this.time.stop();
         this.time = new Timer();
         this.time.render();
-        this.board = new Board(this.size);
-        this.board.placeMines(this.mines);
+        this.board = new Board(boardSize);
+        this.board.placeMines(mines);
         this.board.countMinesAround();
         this.renderBoard();
         this.handleEventListeners();
-        // Additional reset actions as needed
     }
 }
