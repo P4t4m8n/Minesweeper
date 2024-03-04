@@ -5,7 +5,6 @@ export class Board {
 
     board: Array<Array<Cell>> = []
 
-
     constructor(size: number) {
         this.initializeBoard(size)
     }
@@ -66,7 +65,5 @@ export class Board {
     getCell(row: number, col: number): Cell {
         return this.board[row][col]
     }
-
-    
 
 }

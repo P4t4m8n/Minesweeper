@@ -14,14 +14,14 @@
 
 }
 
-.coverd {
+.covered {
     background: #ADA996;
     background: -webkit-linear-gradient(to bottom, #EAEAEA, #DBDBDB, #F2F2F2, #ADA996);
     background: linear-gradient(to bottom, #EAEAEA, #DBDBDB, #F2F2F2, #ADA996);
    
 }
 
-.un-coverd {
+.un-covered {
     background: #423D37;
     background: -webkit-linear-gradient(to top, #423D37, #504A40, #605C53, #706C64);
     background: linear-gradient(to top, #423D37, #504A40, #605C53, #706C64);
