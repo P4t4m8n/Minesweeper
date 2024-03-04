@@ -1,7 +1,9 @@
 import { Game } from "./Game.js";
 document.addEventListener('DOMContentLoaded', () => onInit());
 function onInit() {
-    const boardSize = 4;
-    const minesCount = 2;
-    const game = new Game(boardSize, minesCount);
+    let boardSize = 4;
+    let minesCount = 2;
+    let game = new Game(boardSize, minesCount);
+    const elRestartBtn = document.querySelector('.restart');
+    elRestartBtn.addEventListener('click', () => game.restart());
 }

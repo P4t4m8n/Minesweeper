@@ -1,8 +1,16 @@
 @import 'cell.css';
 @import 'board.css';
+@import '/assats/header.css';
+@import '/assats/typography.css';
 
 
-.board-container {
-    display: grid;
-    gap: 1em;
+body {
+    height: 100vh;
+}
+
+main {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
 }

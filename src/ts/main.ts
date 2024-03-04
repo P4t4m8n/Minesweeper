@@ -6,10 +6,12 @@ document.addEventListener('DOMContentLoaded', () => onInit())
 function onInit(): void {
 
 
-    const boardSize = 4
-    const minesCount = 2
-    const game = new Game(boardSize,minesCount)
+    let boardSize = 4
+    let minesCount = 2
 
+    let game = new Game(boardSize, minesCount)
+    const elRestartBtn = document.querySelector('.restart') as HTMLButtonElement
+    elRestartBtn.addEventListener('click', () => game.restart())
 }
 
 

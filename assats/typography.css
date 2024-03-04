@@ -1,0 +1,15 @@
+@font-face {
+    font-family: MadimiOne;
+    src: url(/assats//fonts//MadimiOne/MadimiOne-Regular.ttf)
+}
+
+main,
+button {
+    font-family: MadimiOne;
+}
+
+
+*>main {
+    font-family: MadimiOne;
+
+}
