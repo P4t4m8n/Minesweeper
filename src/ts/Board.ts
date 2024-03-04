@@ -20,14 +20,14 @@ export class Board {
         }
     }
 
-    placeMines(minesCount: number): void {
+    placeMines(minesCount: number, cellCord: { row: number, col: number }): void {
         let placedMines = 0
 
         while (placedMines < minesCount) {
             const row = Util.getRandomInt(this.board.length)
             const col = Util.getRandomInt(this.board[0].length)
 
-            if (!this.board[row][col].getMine()) {
+            if (!this.board[row][col].getMine() && (row !== cellCord.row && col !== cellCord.col)) {
                 this.board[row][col].setMine()
                 placedMines++
             }

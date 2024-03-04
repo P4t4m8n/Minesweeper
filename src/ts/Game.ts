@@ -22,8 +22,7 @@ export class Game {
         this.board = new Board(boardSize)
         this.time = new Timer()
 
-        this.board.placeMines(mines)
-        this.board.countMinesAround()
+      
         this.renderBoard()
         this.#attachEventListeners()
 
@@ -46,8 +45,11 @@ export class Game {
 
     }
 
-    startGame(): void {
-        this.updateLife(0)
+    startGame(cellCord: { row: number, col: number }): void {
+        this.board.placeMines(this.mines,cellCord)
+        this.board.countMinesAround()
+
+        this.updateLife(3)
         this.isOn = true
         this.time.start()
 
@@ -64,10 +66,10 @@ export class Game {
 
         if (!rowStr || !colStr) return
 
-        if (!this.isOn) this.startGame()
 
         const row = parseInt(rowStr)
         const col = parseInt(colStr)
+        if (!this.isOn) this.startGame({ row, col })
 
         const cell = this.board.getCell(row, col)
         let renderType = `<span>0</span>`
@@ -76,7 +78,7 @@ export class Game {
         if (cell.getMarked()) return
 
         if (cell.isMine) {
-            this.updateLife(-1)
+            this.updateLife(this.lives - 1)
             renderType = this.#getBombSvg()
         }
 
@@ -197,10 +199,10 @@ export class Game {
     }
 
     updateLife(amount: number): void {
-        console.log("amount:", amount)
-        this.lives += amount
-        console.log("this.lives:", this.lives)
+        this.lives = amount
+
         let lifesStr = this.lives + ''
+
         const elLifes = document.querySelector('.life') as HTMLSpanElement
         elLifes.innerText = lifesStr
 
@@ -212,7 +214,6 @@ export class Game {
         this.isOn = false
         this.shownCount = 0
         this.markedCount = 0
-        this.lives = 3
         this.size = boardSize
         this.mines = mines
 
@@ -221,8 +222,6 @@ export class Game {
         this.time.render()
 
         this.board = new Board(boardSize)
-        this.board.placeMines(mines)
-        this.board.countMinesAround()
 
         this.renderBoard();
 

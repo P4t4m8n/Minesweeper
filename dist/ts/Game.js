@@ -17,8 +17,6 @@ export class Game {
         this.size = boardSize;
         this.board = new Board(boardSize);
         this.time = new Timer();
-        this.board.placeMines(mines);
-        this.board.countMinesAround();
         this.renderBoard();
         __classPrivateFieldGet(this, _Game_instances, "m", _Game_attachEventListeners).call(this);
     }
@@ -32,8 +30,10 @@ export class Game {
         }
         elBoard.innerHTML = strHtml.flat().join("");
     }
-    startGame() {
-        this.updateLife(0);
+    startGame(cellCord) {
+        this.board.placeMines(this.mines, cellCord);
+        this.board.countMinesAround();
+        this.updateLife(3);
         this.isOn = true;
         this.time.start();
     }
@@ -47,10 +47,10 @@ export class Game {
         const colStr = target.getAttribute('data-col');
         if (!rowStr || !colStr)
             return;
-        if (!this.isOn)
-            this.startGame();
         const row = parseInt(rowStr);
         const col = parseInt(colStr);
+        if (!this.isOn)
+            this.startGame({ row, col });
         const cell = this.board.getCell(row, col);
         let renderType = `<span>0</span>`;
         if (cell.getShown())
@@ -58,7 +58,7 @@ export class Game {
         if (cell.getMarked())
             return;
         if (cell.isMine) {
-            this.updateLife(-1);
+            this.updateLife(this.lives - 1);
             renderType = __classPrivateFieldGet(this, _Game_instances, "m", _Game_getBombSvg).call(this);
         }
         else if (cell.getMinesAround() > 0) {
@@ -157,9 +157,7 @@ export class Game {
         elMarked.innerText = markedStr;
     }
     updateLife(amount) {
-        console.log("amount:", amount);
-        this.lives += amount;
-        console.log("this.lives:", this.lives);
+        this.lives = amount;
         let lifesStr = this.lives + '';
         const elLifes = document.querySelector('.life');
         elLifes.innerText = lifesStr;
@@ -170,15 +168,12 @@ export class Game {
         this.isOn = false;
         this.shownCount = 0;
         this.markedCount = 0;
-        this.lives = 3;
         this.size = boardSize;
         this.mines = mines;
         this.time.stop();
         this.time = new Timer();
         this.time.render();
         this.board = new Board(boardSize);
-        this.board.placeMines(mines);
-        this.board.countMinesAround();
         this.renderBoard();
     }
 }
