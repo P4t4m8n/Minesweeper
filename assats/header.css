@@ -1,4 +1,61 @@
-.game-manager{
+.game-manager {
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+    border-radius: 4px;
+    margin: 8px 8px 0;
+    gap: 1em;
 
+    .game-info {
+        display: flex;
+        width: fit-content;
+        gap: 1em;
+
+        h3 {
+
+            span {
+                color: red;
+            }
+        }
+    }
+
+    .timer {
+        font-size: 1.5rem;
+        font-family: monospace;
+        font-weight: 700;
+    }
+
+    .control-btns {
+        display: flex;
+        gap: 1em;
+
+        button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: none;
+
+            background: #6E6D70;
+            box-shadow: 0px 0.5px 1px rgba(0, 0, 0, 0.1), inset 0px 0.5px 0.5px rgba(255, 255, 255, 0.5), 0px 0px 0px 0.5px rgba(0, 0, 0, 0.12);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        button:hover {
+            box-shadow: inset 0px 0.8px 0px -0.25px rgba(255, 255, 255, 0.2), 0px 0.5px 1px rgba(0, 0, 0, 0.1), 0px 0px 0px 3.5px rgba(58, 108, 217, 0.5);
+            outline: 0;
+        }
+
+        .focus:focus {
+            box-shadow: inset 0px 0.8px 0px -0.25px rgba(255, 255, 255, 0.2), 0px 0.5px 1px rgba(0, 0, 0, 0.1), 0px 0px 0px 3.5px rgba(58, 108, 217, 0.5);
+            outline: 0;
+
+        }
+
+
+    }
 }
