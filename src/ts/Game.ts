@@ -1,19 +1,15 @@
-import { Board } from "./Board.js";
-import { Timer } from "./Timer.js";
-
-
+import { Board } from "./Board.js"
+import { Timer } from "./Timer.js"
 export class Game {
 
-    isOn = false;
-    shownCount = 0;
-    markedCount = 0;
-    mines: number
-    time: Timer;
-    lives = 3
-    board: Board
-    size: number
-    private interval: any
-    private startTime: number | undefined
+    private isOn = false
+    private shownCount = 0
+    private markedCount = 0
+    private mines: number
+    private time: Timer
+    private lives = 3
+    private board: Board
+    private size: number
 
     constructor(boardSize = 4, mines = 2) {
         this.mines = mines
@@ -22,7 +18,7 @@ export class Game {
         this.board = new Board(boardSize)
         this.time = new Timer()
 
-      
+
         this.renderBoard()
         this.#attachEventListeners()
 
@@ -46,17 +42,16 @@ export class Game {
     }
 
     startGame(cellCord: { row: number, col: number }): void {
-        this.board.placeMines(this.mines,cellCord)
+        this.board.placeMines(this.mines, cellCord)
         this.board.countMinesAround()
 
-        this.updateLife(3)
+        this.updateLife(1)
         this.isOn = true
         this.time.start()
 
     }
 
     onCellClick(ev: Event): void {
-        console.log("ev:", ev)
         ev.preventDefault()
         const target = ev.target as HTMLElement;
         if (!target.classList.contains('cell')) return
@@ -166,9 +161,11 @@ export class Game {
 
     gameOver(isWin: boolean) {
         if (isWin) alert('Win')
-        else alert('Lose')
+        else {
+            this.#revealMines()
+            alert('Lose')
+        }
         this.time.stop()
-        this.#detachEventListeners()
     }
 
     expandShown(rowIdx: number, colIdx: number): void {
@@ -292,5 +289,16 @@ export class Game {
             elBoard.addEventListener('click', this.onCellClick.bind(this))
             elBoard.addEventListener('contextmenu', this.onContextClick.bind(this))
         }
+    }
+
+    #revealMines(): void {
+        this.board.board.forEach((row, rowIdx) =>
+            row.forEach((cell, colIdx) => {
+                if (cell.getMine() && !cell.getShown()) {
+                    cell.setShown()
+                    this.renderCell(this.#getBombSvg(), rowIdx, colIdx)
+                }
+            }))
+
     }
 }

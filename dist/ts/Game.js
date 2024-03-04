@@ -3,7 +3,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Game_instances, _Game_getBombSvg, _Game_getNumberHtml, _Game_getMarkedSvg, _Game_detachEventListeners, _Game_attachEventListeners;
+var _Game_instances, _Game_getBombSvg, _Game_getNumberHtml, _Game_getMarkedSvg, _Game_detachEventListeners, _Game_attachEventListeners, _Game_revealMines;
 import { Board } from "./Board.js";
 import { Timer } from "./Timer.js";
 export class Game {
@@ -33,12 +33,11 @@ export class Game {
     startGame(cellCord) {
         this.board.placeMines(this.mines, cellCord);
         this.board.countMinesAround();
-        this.updateLife(3);
+        this.updateLife(1);
         this.isOn = true;
         this.time.start();
     }
     onCellClick(ev) {
-        console.log("ev:", ev);
         ev.preventDefault();
         const target = ev.target;
         if (!target.classList.contains('cell'))
@@ -128,10 +127,11 @@ export class Game {
     gameOver(isWin) {
         if (isWin)
             alert('Win');
-        else
+        else {
+            __classPrivateFieldGet(this, _Game_instances, "m", _Game_revealMines).call(this);
             alert('Lose');
+        }
         this.time.stop();
-        __classPrivateFieldGet(this, _Game_instances, "m", _Game_detachEventListeners).call(this);
     }
     expandShown(rowIdx, colIdx) {
         this.board.countNeighbors(rowIdx, colIdx, (cell, i, j) => {
@@ -225,4 +225,11 @@ _Game_instances = new WeakSet(), _Game_getBombSvg = function _Game_getBombSvg() 
         elBoard.addEventListener('click', this.onCellClick.bind(this));
         elBoard.addEventListener('contextmenu', this.onContextClick.bind(this));
     }
+}, _Game_revealMines = function _Game_revealMines() {
+    this.board.board.forEach((row, rowIdx) => row.forEach((cell, colIdx) => {
+        if (cell.getMine() && !cell.getShown()) {
+            cell.setShown();
+            this.renderCell(__classPrivateFieldGet(this, _Game_instances, "m", _Game_getBombSvg).call(this), rowIdx, colIdx);
+        }
+    }));
 };

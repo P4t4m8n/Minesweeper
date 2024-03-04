@@ -31,6 +31,7 @@ function onLevelChange(ev: Event, game: Game, size: number) {
 
 }
 
+
 function _getMinesAmount(size: number): number {
     let mines: number
 
