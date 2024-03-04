@@ -1,0 +1,66 @@
+.cell {
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px, rgb(51, 51, 51) 0px 0px 0px 3px;
+    width: 2em;
+    height: 2em;
+    border-radius: 1px;
+    font-size: 1rem;
+
+
+}
+
+.coverd {
+    background: #ADA996;
+    background: -webkit-linear-gradient(to bottom, #EAEAEA, #DBDBDB, #F2F2F2, #ADA996);
+    background: linear-gradient(to bottom, #EAEAEA, #DBDBDB, #F2F2F2, #ADA996);
+}
+
+.un-coverd {
+    background: #423D37;
+    background: -webkit-linear-gradient(to top, #423D37, #504A40, #605C53, #706C64);
+    background: linear-gradient(to top, #423D37, #504A40, #605C53, #706C64);
+    color: #e7c725 ;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center
+}
+
+.one {
+    background-color: #eeeeee;
+    color: #0332fe;
+  }
+  
+  .two {
+    background-color: #eeeeee;
+    color: #019f02;
+  }
+  
+  .three {
+    background-color: #eeeeee;
+    color: #ff2600;
+  }
+  
+  .four {
+    background-color: #eeeeee;
+    color: #93208f;
+  }
+  
+  .five {
+    background-color: #eeeeee;
+    color: #ff7f29;
+  }
+  
+  .six {
+    background-color: #eeeeee;
+    color: #ff3fff;
+  }
+  
+  .seven {
+    background-color: #eeeeee;
+    color: #53b8b4;
+  }
+  
+  .eight {
+    background-color: #eeeeee;
+    color: #22ee0f;
+  }
