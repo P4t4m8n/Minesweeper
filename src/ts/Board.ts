@@ -63,22 +63,6 @@ export class Board {
         }
     }
 
-
-    // countNeighbors(row: number, col: number): number {
-    //     var neighbors = 0
-
-    //     for (var i = row - 1; i <= row + 1; i++) {
-    //         if (i < 0 || i >= this.board.length) continue
-
-    //         for (var j = col - 1; j <= col + 1; j++) {
-    //             if (i === row && j === col) continue
-    //             if (j < 0 || j >= this.board[i].length) continue
-    //             if (this.board[i][j].getMine()) neighbors++
-    //         }
-    //     }
-    //     return neighbors
-    // }
-
     getCell(row: number, col: number): Cell {
         return this.board[row][col]
     }

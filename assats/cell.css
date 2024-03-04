@@ -25,42 +25,8 @@
     justify-content: center
 }
 
-.one {
-    background-color: #eeeeee;
-    color: #0332fe;
-  }
-  
-  .two {
-    background-color: #eeeeee;
-    color: #019f02;
-  }
-  
-  .three {
-    background-color: #eeeeee;
-    color: #ff2600;
-  }
-  
-  .four {
-    background-color: #eeeeee;
-    color: #93208f;
-  }
-  
-  .five {
-    background-color: #eeeeee;
-    color: #ff7f29;
-  }
-  
-  .six {
-    background-color: #eeeeee;
-    color: #ff3fff;
-  }
-  
-  .seven {
-    background-color: #eeeeee;
-    color: #53b8b4;
-  }
-  
-  .eight {
-    background-color: #eeeeee;
-    color: #22ee0f;
-  }
+svg{
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: red;
+}
