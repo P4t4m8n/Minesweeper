@@ -69,6 +69,19 @@ function renderCell(renderType: string, row: number, col: number, isContext = fa
     elSpan.innerHTML = renderType
 }
 
+function renderHints(): void {
+    const elHints = document.querySelector('.hints') as HTMLDivElement
+    if (!elHints) return
+
+    const svgChildren = elHints.querySelectorAll('svg')
+
+    const newSvgContent = _getLightBulbSvg()
+
+    svgChildren.forEach(svgChild => {
+        svgChild.innerHTML = newSvgContent
+    })
+}
+
 function renderUI(selector: string, value: number | string): void {
     const el = document.querySelector(selector) as HTMLSpanElement
 
@@ -98,11 +111,7 @@ function onCellClick(ev: Event, game: Game): void {
     const col = parseInt(colStr)
 
     if (!game.getIsOn()) {
-
-        game.startGame({ row, col })
-        let lifes = game.getLifes()
-        renderUI('.life', lifes)
-        renderUI('.restart-svg', _getWorriedSmiley())
+        gameStart(game, { row, col })
     }
 
     const cell = game.getCellInstance(row, col)
@@ -129,7 +138,7 @@ function onCellClick(ev: Event, game: Game): void {
     }
 
     else {
-        onExpandShown(row, col, game)
+        _expandShown(row, col, game)
         showCount = game.getShowCount()
     }
 
@@ -138,7 +147,7 @@ function onCellClick(ev: Event, game: Game): void {
     renderUI('.shown', showCount)
 
     let isWin = game.checkWin()
-    if (isWin) onGameOver(isWin, game)
+    if (isWin) _gameOver(isWin, game)
 
 }
 
@@ -187,11 +196,60 @@ function onContextClick(ev: Event, game: Game) {
     renderUI('.marked', markedCount)
 
     let isWin = game.checkWin()
-    if (isWin) onGameOver(isWin, game)
+    if (isWin) _gameOver(isWin, game)
 
 }
 
-function onExpandShown(rowIdx: number, colIdx: number, game: Game): void {
+function onLevelChange(ev: Event, game: Game, size: number) {
+    ev.preventDefault()
+
+    let mines = _getMinesAmount(size)
+    onRestart(ev, game, size, mines)
+    renderBoard(size)
+
+}
+
+function onRestart(ev: Event, game: Game, size: number, mines: number): void {
+    ev.preventDefault()
+
+    game.restart(size, mines)
+
+    renderBoard(size)
+    renderUI('.life', 0);
+    renderUI('.shown', 0);
+    renderUI('.marked', 0)
+    renderUI('.restart-svg', _getSmileySvg())
+}
+
+function onHint() {
+
+}
+
+//Methods
+
+function gameStart(game: Game, coords: { row: number, col: number }): void {
+
+    game.startGame(coords)
+    let lifes = game.getLifes()
+    renderUI('.life', lifes)
+    renderUI('.restart-svg', _getWorriedSmiley())
+    renderHints()
+}
+
+function _gameOver(isWin: boolean, game: Game) {
+    if (isWin) {
+        alert('Win')
+        renderUI('.restart-svg', _getHappySMileySvg())
+    }
+    else {
+        alert('Lose')
+        _revealMines(game.getBoard())
+        renderUI('.restart-svg', _getSadSmileySvg())
+    }
+    game.gameOver(isWin)
+}
+
+function _expandShown(rowIdx: number, colIdx: number, game: Game): void {
     const queue = [{ row: rowIdx, col: colIdx }]
 
     while (queue.length > 0) {
@@ -208,41 +266,10 @@ function onExpandShown(rowIdx: number, colIdx: number, game: Game): void {
     }
 }
 
-function onLevelChange(ev: Event, game: Game, size: number) {
-    ev.preventDefault()
-
-    let mines = _getMinesAmount(size)
-    onRestart(ev, game, size, mines)
-    renderBoard(size)
+function _revealNeighbours(row: number, col: number, game: Game): void {
+    
 
 }
-
-function onGameOver(isWin: boolean, game: Game) {
-    if (isWin) {
-        alert('Win')
-        renderUI('.restart-svg', _getHappySMiley())
-    }
-    else {
-        alert('Lose')
-        _revealMines(game.getBoard())
-        renderUI('.restart-svg', _getSadSmiley())
-    }
-    game.gameOver(isWin)
-}
-
-function onRestart(ev: Event, game: Game, size: number, mines: number): void {
-    ev.preventDefault()
-
-    game.restart(size, mines)
-
-    renderBoard(size)
-    renderUI('.life', 0);
-    renderUI('.shown', 0);
-    renderUI('.marked', 0)
-    renderUI('.restart-svg', _getSmileySvg())
-}
-
-//Util
 
 function _revealMines(board: Board): void {
     board.board.forEach((row, rowIdx) =>
@@ -348,7 +375,7 @@ function _getWorriedSmiley(): string {
     )
 }
 
-function _getSadSmiley(): string {
+function _getSadSmileySvg(): string {
     return (
         `<svg  viewBox="0 0 256 220" >
         <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -358,7 +385,7 @@ function _getSadSmiley(): string {
     )
 }
 
-function _getHappySMiley(): string {
+function _getHappySMileySvg(): string {
     return (
         `  <svg class="restart-svg" viewBox="0 0 128 90">
         <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -368,6 +395,22 @@ function _getHappySMiley(): string {
     )
 }
 
+function _getLightBulbSvg(): string {
+    return (
+        `<svg viewBox="0 0 24 24" >
+        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_iconCarrier"> <path d="M10.063 8.5C10.0219 8.34019 10 8.17265 10 8C10 6.89543 10.8954 6 12 6C12.1413 6 12.2792 6.01466 12.4122 6.04253M5.6 21H18.4C18.9601 21 19.2401 21 19.454 20.891C19.6422 20.7951 19.7951 20.6422 19.891 20.454C20 20.2401 20 19.9601 20 19.4V18.6C20 18.0399 20 17.7599 19.891 17.546C19.7951 17.3578 19.6422 17.2049 19.454 17.109C19.2401 17 18.9601 17 18.4 17H5.6C5.03995 17 4.75992 17 4.54601 17.109C4.35785 17.2049 4.20487 17.3578 4.10899 17.546C4 17.7599 4 18.0399 4 18.6V19.4C4 19.9601 4 20.2401 4.10899 20.454C4.20487 20.6422 4.35785 20.7951 4.54601 20.891C4.75992 21 5.03995 21 5.6 21ZM17 14V8C17 5.23858 14.7614 3 12 3C9.23858 3 7 5.23858 7 8V14H17Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g>
+        </svg>`
+    )
+}
 
-
-
+function _getLightBulbActiveSvg(): string {
+    return (
+        `<svg viewBox="0 0 24 24" >
+        <g id="SVGRepo_bgCarrier" stroke-width="0">
+        </g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_iconCarrier"> <path fill="yellow" d="M10.063 8.5C10.0219 8.34019 10 8.17265 10 8C10 6.89543 10.8954 6 12 6C12.1413 6 12.2792 6.01466 12.4122 6.04253M5 4L3 3M19 4L21 3M4 10H3M21 10H20M5.6 21H18.4C18.9601 21 19.2401 21 19.454 20.891C19.6422 20.7951 19.7951 20.6422 19.891 20.454C20 20.2401 20 19.9601 20 19.4V18.6C20 18.0399 20 17.7599 19.891 17.546C19.7951 17.3578 19.6422 17.2049 19.454 17.109C19.2401 17 18.9601 17 18.4 17H5.6C5.03995 17 4.75992 17 4.54601 17.109C4.35785 17.2049 4.20487 17.3578 4.10899 17.546C4 17.7599 4 18.0399 4 18.6V19.4C4 19.9601 4 20.2401 4.10899 20.454C4.20487 20.6422 4.35785 20.7951 4.54601 20.891C4.75992 21 5.03995 21 5.6 21ZM17 14V8C17 5.23858 14.7614 3 12 3C9.23858 3 7 5.23858 7 8V14H17Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g>
+        </svg>`
+    )
+}

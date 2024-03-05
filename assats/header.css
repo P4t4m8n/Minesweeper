@@ -60,6 +60,12 @@
         }
 
     }
+
+    .hints {
+        .yellow {
+            fill: yellow;
+        }
+    }
 }
 
 .restart-svg {
@@ -68,10 +74,11 @@
     fill: yellow;
 }
 
-@media (max-width:400px){
-    .game-manager{
+@media (max-width:400px) {
+    .game-manager {
         gap: .5em;
-        h3{
+
+        h3 {
             width: 80px;
         }
     }

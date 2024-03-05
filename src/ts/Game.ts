@@ -3,6 +3,8 @@ import { Timer } from "./Timer.js"
 export class Game {
 
     private isOn = false
+    private isHint = false
+    private hintCount = 3
     private shownCount = 0
     private markedCount = 0
     private mines: number
@@ -104,6 +106,10 @@ export class Game {
 
     getSize(): number {
         return this.size
+    }
+
+    getIsHint():boolean{
+        return this.isHint
     }
 
     //Setters

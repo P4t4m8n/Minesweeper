@@ -3,6 +3,8 @@ import { Timer } from "./Timer.js";
 export class Game {
     constructor(boardSize = 4, mines = 2) {
         this.isOn = false;
+        this.isHint = false;
+        this.hintCount = 3;
         this.shownCount = 0;
         this.markedCount = 0;
         this.lifes = 3;
@@ -72,6 +74,9 @@ export class Game {
     }
     getSize() {
         return this.size;
+    }
+    getIsHint() {
+        return this.isHint;
     }
     //Setters
     setIsOn() {
