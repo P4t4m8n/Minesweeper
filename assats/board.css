@@ -1,6 +1,20 @@
 .board-container {
     display: grid;
-    gap: .5em;
+    gap: 0.5em;
     width: fit-content;
     align-self: center;
+    padding: 4px;
+}
+
+@media (max-width: 500px) {
+    .board-container {
+        width: 90vw;
+        justify-content: center;
+        gap:0;
+    }
+
+    .board-container .cell {
+        width: 1rem;
+        height: 1rem;
+    }
 }
