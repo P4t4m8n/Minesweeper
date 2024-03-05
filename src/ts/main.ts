@@ -1,4 +1,5 @@
 
+import { CoordsModel } from "../models/Cell.model.js"
 import { Board } from "./Board.js"
 import { Cell } from "./Cell.js"
 import { Game } from "./Game.js"
@@ -37,6 +38,9 @@ function handleEventListeners(game: Game): void {
 
     const elSafeClickBtn = document.querySelector('.safe-click button')
     elSafeClickBtn?.addEventListener('click', () => onSafeClick(game))
+
+    const elManuallyCreateBtn = document.querySelector('.manually-create')
+    elManuallyCreateBtn?.addEventListener('click', () => onManuallyCreate(game))
 }
 
 //RENDERS
@@ -123,6 +127,14 @@ function onCellClick(ev: Event, game: Game): void {
 
     const row = parseInt(rowStr)
     const col = parseInt(colStr)
+
+    if (game.getIsManuallMines() && game.getPlacedMines() > 0) {
+        return _ManuallyPlaceMines(game, { row, col })
+    }
+
+    if (game.getPlacedMines() === 0) {
+        _removeClasses('.mine-placed')
+    }
 
     if (!game.getIsOn()) {
         gameStart(game, { row, col })
@@ -267,6 +279,11 @@ function onSafeClick(game: Game): void {
     renderUI('.safe-click-txt', game.getSafeClicks())
 }
 
+function onManuallyCreate(game: Game): void {
+    game.setIsManuallMines(true)
+    game.setPlacedMines(game.getMines())
+}
+
 //Methods
 
 function gameStart(game: Game, coords: { row: number, col: number }): void {
@@ -340,6 +357,12 @@ function _revealMines(board: Board): void {
 
 }
 
+function _ManuallyPlaceMines(game: Game, coords: CoordsModel): void {
+    game.placeMine(coords)
+    const elCell = document.querySelector(`[data-row="${coords.row}"][data-col="${coords.col}"]`) as HTMLDivElement
+    elCell.classList.add('mine-placed')
+}
+
 function _getMinesAmount(size: number): number {
     let mines: number
 
@@ -359,6 +382,12 @@ function _getMinesAmount(size: number): number {
     }
 
     return mines
+}
+
+function _removeClasses(className: string): void {
+    const elCells = document.querySelectorAll(className)
+    let shortClassName = className.substring(1)
+    elCells.forEach(elCell => elCell.classList.remove(shortClassName))
 }
 
 //SVGS

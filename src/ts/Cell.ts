@@ -18,6 +18,8 @@ export class Cell implements CellModel {
         this.coords = coords
     }
 
+    
+
     //Getters
 
     getMine(): boolean {
@@ -44,8 +46,8 @@ export class Cell implements CellModel {
 
     //Setters
 
-    setMine(): void {
-        this.isMine = !this.isMine
+    setMine(isMine:boolean): void {
+        this.isMine = isMine
     }
 
     setMarked(): void {

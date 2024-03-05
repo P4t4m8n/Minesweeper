@@ -27,11 +27,15 @@ export class Board {
             const col = Util.getRandomInt(this.board[0].length)
 
             if (!this.board[row][col].getMine() && (row !== cellCord.row && col !== cellCord.col)) {
-                this.board[row][col].setMine()
-                this.board[row][col].setHtmlStr(this.#getBombSvg())
+                this.placeMine(this.board[row][col])
                 placedMines++
             }
         }
+    }
+
+    placeMine(cell: Cell): void {
+        cell.setMine(true)
+        cell.setHtmlStr(this.#getBombSvg())
     }
 
     countMinesAround(): void {

@@ -23,6 +23,8 @@ function handleEventListeners(game) {
     elHintsBtns.forEach((button, idx) => button.addEventListener('click', () => onHint(game, idx)));
     const elSafeClickBtn = document.querySelector('.safe-click button');
     elSafeClickBtn === null || elSafeClickBtn === void 0 ? void 0 : elSafeClickBtn.addEventListener('click', () => onSafeClick(game));
+    const elManuallyCreateBtn = document.querySelector('.manually-create');
+    elManuallyCreateBtn === null || elManuallyCreateBtn === void 0 ? void 0 : elManuallyCreateBtn.addEventListener('click', () => onManuallyCreate(game));
 }
 //RENDERS
 function renderBoard(size) {
@@ -85,6 +87,12 @@ function onCellClick(ev, game) {
         return;
     const row = parseInt(rowStr);
     const col = parseInt(colStr);
+    if (game.getIsManuallMines() && game.getPlacedMines() > 0) {
+        return _ManuallyPlaceMines(game, { row, col });
+    }
+    if (game.getPlacedMines() === 0) {
+        _removeClasses('.mine-placed');
+    }
     if (!game.getIsOn()) {
         gameStart(game, { row, col });
     }
@@ -192,6 +200,10 @@ function onSafeClick(game) {
     elCell.classList.add('safe');
     renderUI('.safe-click-txt', game.getSafeClicks());
 }
+function onManuallyCreate(game) {
+    game.setIsManuallMines(true);
+    game.setPlacedMines(game.getMines());
+}
 //Methods
 function gameStart(game, coords) {
     game.startGame(coords);
@@ -248,6 +260,11 @@ function _revealMines(board) {
         }
     }));
 }
+function _ManuallyPlaceMines(game, coords) {
+    game.placeMine(coords);
+    const elCell = document.querySelector(`[data-row="${coords.row}"][data-col="${coords.col}"]`);
+    elCell.classList.add('mine-placed');
+}
 function _getMinesAmount(size) {
     let mines;
     switch (size) {
@@ -262,6 +279,11 @@ function _getMinesAmount(size) {
             break;
     }
     return mines;
+}
+function _removeClasses(className) {
+    const elCells = document.querySelectorAll(className);
+    let shortClassName = className.substring(1);
+    elCells.forEach(elCell => elCell.classList.remove(shortClassName));
 }
 //SVGS
 function _getMarkedSvg() {

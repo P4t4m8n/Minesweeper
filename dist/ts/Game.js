@@ -10,13 +10,16 @@ export class Game {
         this.markedCount = 0;
         this.lifes = 3;
         this.safeClicks = 3;
+        this.isManuallMines = false;
+        this.placedMines = 0;
         this.mines = mines;
         this.size = boardSize;
         this.board = new Board(boardSize);
         this.time = new Timer();
     }
     startGame(cellCord) {
-        this.board.placeMines(this.mines, cellCord);
+        if (!this.isManuallMines)
+            this.board.placeMines(this.mines, cellCord);
         this.board.countMinesAround();
         this.setLifes(3);
         this.setSafeClicks(3);
@@ -49,6 +52,8 @@ export class Game {
         this.markedCount = 0;
         this.size = boardSize;
         this.mines = mines;
+        this.placedMines = 0;
+        this.isManuallMines = false;
         this.time.stop();
         this.time = new Timer();
         this.time.render();
@@ -67,6 +72,12 @@ export class Game {
             return this.safeClick();
         this.safeClicks = this.safeClicks - 1;
         return cell;
+    }
+    placeMine(coords) {
+        const { row, col } = coords;
+        const cell = this.board.board[row][col];
+        this.board.placeMine(cell);
+        this.setPlacedMines(this.placedMines - 1);
     }
     //Getters
     getIsOn() {
@@ -102,6 +113,12 @@ export class Game {
     getSafeClicks() {
         return this.safeClicks;
     }
+    getIsManuallMines() {
+        return this.isManuallMines;
+    }
+    getPlacedMines() {
+        return this.placedMines;
+    }
     //Setters
     setIsOn(isOn) {
         this.isOn = isOn;
@@ -129,5 +146,11 @@ export class Game {
     }
     setSafeClicks(amount) {
         this.safeClicks = amount;
+    }
+    setIsManuallMines(isManuallMines) {
+        this.isManuallMines = isManuallMines;
+    }
+    setPlacedMines(amount) {
+        this.placedMines = amount;
     }
 }

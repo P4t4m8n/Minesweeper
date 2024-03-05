@@ -27,8 +27,8 @@ export class Cell {
         return this.coords;
     }
     //Setters
-    setMine() {
-        this.isMine = !this.isMine;
+    setMine(isMine) {
+        this.isMine = isMine;
     }
     setMarked() {
         this.isMarked = !this.isMarked;

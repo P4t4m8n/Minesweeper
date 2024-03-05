@@ -1,3 +1,4 @@
+import { CoordsModel } from "../models/Cell.model.js"
 import { Board } from "./Board.js"
 import { Cell } from "./Cell.js"
 import { Timer } from "./Timer.js"
@@ -15,6 +16,8 @@ export class Game {
     private board: Board
     private size: number
     private safeClicks = 3
+    private isManuallMines = false
+    private placedMines = 0
 
     constructor(boardSize = 4, mines = 2) {
         this.mines = mines
@@ -26,7 +29,8 @@ export class Game {
     }
 
     startGame(cellCord: { row: number, col: number }): void {
-        this.board.placeMines(this.mines, cellCord)
+
+        if (!this.isManuallMines) this.board.placeMines(this.mines, cellCord)
         this.board.countMinesAround()
 
         this.setLifes(3)
@@ -70,6 +74,8 @@ export class Game {
         this.markedCount = 0
         this.size = boardSize
         this.mines = mines
+        this.placedMines = 0
+        this.isManuallMines = false
 
         this.time.stop()
         this.time = new Timer()
@@ -94,6 +100,15 @@ export class Game {
         this.safeClicks = this.safeClicks - 1
 
         return cell
+
+    }
+
+    placeMine(coords: CoordsModel): void {
+        const { row, col } = coords
+        const cell = this.board.board[row][col]
+        this.board.placeMine(cell)
+        
+        this.setPlacedMines(this.placedMines - 1)
 
     }
 
@@ -143,6 +158,14 @@ export class Game {
         return this.safeClicks
     }
 
+    getIsManuallMines(): boolean {
+        return this.isManuallMines
+    }
+
+    getPlacedMines(): number {
+        return this.placedMines
+    }
+
 
     //Setters
 
@@ -181,5 +204,13 @@ export class Game {
 
     setSafeClicks(amount: number) {
         this.safeClicks = amount
+    }
+
+    setIsManuallMines(isManuallMines: boolean): void {
+        this.isManuallMines = isManuallMines
+    }
+
+    setPlacedMines(amount: number): void {
+        this.placedMines = amount
     }
 }

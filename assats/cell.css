@@ -18,7 +18,7 @@
     background: #ADA996;
     background: -webkit-linear-gradient(to bottom, #EAEAEA, #DBDBDB, #F2F2F2, #ADA996);
     background: linear-gradient(to bottom, #EAEAEA, #DBDBDB, #F2F2F2, #ADA996);
-   
+
 }
 
 .un-covered {
@@ -43,21 +43,28 @@ svg {
     display: flex;
 }
 
-.safe{
+.safe {
     box-shadow: rgb(206, 185, 0) 0px 1px 4px, rgb(51, 51, 51) 0px 0px 0px 3px;
     background-color: yellow;
     animation: pulseAnimation 2s infinite ease-in-out;
 }
 
+.mine-placed {
+    box-shadow: rgb(237, 5, 5) 0px 1px 4px, rgb(51, 51, 51) 0px 0px 0px 3px;
+    animation: pulseAnimation 2s infinite ease-in-out;
+}
+
 @keyframes pulseAnimation {
     0% {
-      transform: scale(1);
+        transform: scale(1);
     }
+
     50% {
-      transform: scale(1.2);
-      opacity: 0.7;
+        transform: scale(1.2);
+        opacity: 0.7;
     }
+
     100% {
-      transform: scale(1);
+        transform: scale(1);
     }
-  }
+}

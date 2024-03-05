@@ -27,11 +27,14 @@ export class Board {
             const row = Util.getRandomInt(this.board.length);
             const col = Util.getRandomInt(this.board[0].length);
             if (!this.board[row][col].getMine() && (row !== cellCord.row && col !== cellCord.col)) {
-                this.board[row][col].setMine();
-                this.board[row][col].setHtmlStr(__classPrivateFieldGet(this, _Board_instances, "m", _Board_getBombSvg).call(this));
+                this.placeMine(this.board[row][col]);
                 placedMines++;
             }
         }
+    }
+    placeMine(cell) {
+        cell.setMine(true);
+        cell.setHtmlStr(__classPrivateFieldGet(this, _Board_instances, "m", _Board_getBombSvg).call(this));
     }
     countMinesAround() {
         let size = this.board.length;
