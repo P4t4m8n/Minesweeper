@@ -44,6 +44,12 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
+
+            span {
+                /* display: flex; */
+               /* align-self: center;
+               justify-self: center; */
+            }
         }
 
         button:hover {
@@ -62,8 +68,7 @@
 }
 
 .restart-svg {
-    width: 2rem;
-
+    width: 1.5rem;
+    height: 1.5rem;
     fill: yellow;
-
 }
