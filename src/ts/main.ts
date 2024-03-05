@@ -1,5 +1,6 @@
 
 import { Board } from "./Board.js"
+import { Cell } from "./Cell.js"
 import { Game } from "./Game.js"
 
 document.addEventListener('DOMContentLoaded', () => onInit())
@@ -29,6 +30,13 @@ function handleEventListeners(game: Game): void {
         elBoard.addEventListener('click', (ev) => onCellClick(ev, game))
         elBoard.addEventListener('contextmenu', (ev) => onContextClick(ev, game))
     }
+
+    const elHints = document.querySelector('.hints') as HTMLDivElement
+    const elHintsBtns = elHints.querySelectorAll('button')
+    elHintsBtns.forEach((button, idx) => button.addEventListener('click', () => onHint(game, idx)))
+
+    const elSafeClickBtn = document.querySelector('.safe-click button')
+    elSafeClickBtn?.addEventListener('click', () => onSafeClick(game))
 }
 
 //RENDERS
@@ -51,7 +59,7 @@ function renderBoard(size: number): void {
     }
 }
 
-function renderCell(renderType: string, row: number, col: number, isContext = false) {
+function renderCell(renderType: string, row: number, col: number, isContext = false, isHint = false) {
 
     const elCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`) as HTMLDivElement
     if (!elCell) {
@@ -61,10 +69,17 @@ function renderCell(renderType: string, row: number, col: number, isContext = fa
 
     let elSpan = elCell.querySelector('span') as HTMLSpanElement
 
-    if (!isContext) {
+    if (isHint) {
+        elCell.classList.toggle('covered')
+        elCell.classList.toggle('un-covered')
+    }
+
+    else if (!isContext) {
         elCell.classList.remove('covered')
         elCell.classList.add('un-covered')
     }
+
+    elCell.classList.remove('safe')
 
     elSpan.innerHTML = renderType
 }
@@ -73,11 +88,10 @@ function renderHints(): void {
     const elHints = document.querySelector('.hints') as HTMLDivElement
     if (!elHints) return
 
-    const svgChildren = elHints.querySelectorAll('svg')
+    const svgChildren = elHints.querySelectorAll('button')
 
-    const newSvgContent = _getLightBulbSvg()
-
-    svgChildren.forEach(svgChild => {
+    svgChildren.forEach((svgChild, idx) => {
+        let newSvgContent = _getLightBulbSvg(idx.toString())
         svgChild.innerHTML = newSvgContent
     })
 }
@@ -118,6 +132,12 @@ function onCellClick(ev: Event, game: Game): void {
 
     if (cell.getShown()) return
     if (cell.getMarked()) return
+
+    if (game.getIsHint()) {
+        _handleRevealNeighbours(row, col, game, cell)
+        game.setIsHint(false)
+        return
+    }
 
     let showCount = game.getShowCount()
 
@@ -218,8 +238,33 @@ function onRestart(ev: Event, game: Game, size: number, mines: number): void {
     renderUI('.restart-svg', _getSmileySvg())
 }
 
-function onHint() {
+function onHint(game: Game, idx: number): void {
 
+    let newHintCount = game.getHintsCount()
+
+    renderUI(`.hint${idx}`, _getLightBulbActiveSvg())
+
+    if (newHintCount <= 0) return
+
+    newHintCount -= 1
+
+    game.setHintCount(newHintCount)
+    game.setIsHint(true)
+
+}
+
+function onSafeClick(game: Game): void {
+
+    if (!game.getIsOn()) return
+
+    const cell = game.safeClick()
+    if (typeof cell === 'string') return alert(cell)
+
+    const { row, col } = cell.getCoords()
+
+    const elCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`) as HTMLDivElement
+    elCell.classList.add('safe')
+    renderUI('.safe-click-txt', game.getSafeClicks())
 }
 
 //Methods
@@ -230,6 +275,7 @@ function gameStart(game: Game, coords: { row: number, col: number }): void {
     let lifes = game.getLifes()
     renderUI('.life', lifes)
     renderUI('.restart-svg', _getWorriedSmiley())
+    renderUI('.safe-click-txt', game.getSafeClicks())
     renderHints()
 }
 
@@ -263,8 +309,23 @@ function _expandShown(rowIdx: number, colIdx: number, game: Game): void {
     }
 }
 
-function _revealNeighbours(row: number, col: number, game: Game): void {
+function _handleRevealNeighbours(row: number, col: number, game: Game, cell: Cell): void {
 
+    _revealNeighbours(row, col, game, cell)
+    setTimeout(_revealNeighbours, 1500, row, col, game, cell, '<span> </span>')
+
+}
+
+function _revealNeighbours(row: number, col: number, game: Game, cell: Cell, htmlStr = ''): void {
+
+    renderCell(htmlStr || cell.getHtmlStr(), row, col, false, true)
+
+    const board = game.getBoard()
+    board.neighborsLoop(row, col, (cell, i, j) => {
+        if (cell.getShown()) return
+        let HtmlToRender = htmlStr ? htmlStr : cell.getHtmlStr()
+        renderCell(HtmlToRender, i, j, false, true)
+    })
 
 }
 
@@ -349,9 +410,9 @@ function _getHappySMileySvg(): string {
     )
 }
 
-function _getLightBulbSvg(): string {
+function _getLightBulbSvg(idx = ''): string {
     return (
-        `<svg viewBox="0 0 24 24" >
+        `<svg class=hint${idx} viewBox="0 0 24 24" >
         <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
         <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
         <g id="SVGRepo_iconCarrier"> <path d="M10.063 8.5C10.0219 8.34019 10 8.17265 10 8C10 6.89543 10.8954 6 12 6C12.1413 6 12.2792 6.01466 12.4122 6.04253M5.6 21H18.4C18.9601 21 19.2401 21 19.454 20.891C19.6422 20.7951 19.7951 20.6422 19.891 20.454C20 20.2401 20 19.9601 20 19.4V18.6C20 18.0399 20 17.7599 19.891 17.546C19.7951 17.3578 19.6422 17.2049 19.454 17.109C19.2401 17 18.9601 17 18.4 17H5.6C5.03995 17 4.75992 17 4.54601 17.109C4.35785 17.2049 4.20487 17.3578 4.10899 17.546C4 17.7599 4 18.0399 4 18.6V19.4C4 19.9601 4 20.2401 4.10899 20.454C4.20487 20.6422 4.35785 20.7951 4.54601 20.891C4.75992 21 5.03995 21 5.6 21ZM17 14V8C17 5.23858 14.7614 3 12 3C9.23858 3 7 5.23858 7 8V14H17Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g>

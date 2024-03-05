@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="assats/main.css">
+
   <title>Mine Swepper</title>
 </head>
 
@@ -19,11 +20,17 @@
         <h3><span class="marked">0</span> CELLS MARKED</h3>
         <h3><span class="life">0</span> ❤️</h3>
       </div>
+      <div class="extra-features">
+        <div class="safe-click">
+          <button>SafeClick</button>
+          <span class="safe-click-txt"></span>
+        </div>
 
-      <div class="hints">
-        <svg class="hint1"></svg>
-        <svg class="hint2"></svg>
-        <svg class="hint3"></svg>
+        <div class="hints">
+          <button class="hint0"><svg></svg></button>
+          <button class="hint1"><svg></svg></button>
+          <button class="hint2"><svg></svg></button>
+        </div>
       </div>
 
       <div class="timer">
@@ -50,7 +57,6 @@
     <section class="board-container">
     </section>
   </main>
-
 
   <script type="module" src="/dist/ts/main.js"></script>
 </body>

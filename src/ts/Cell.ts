@@ -1,4 +1,4 @@
-import { CellModel } from "../models/Cell.model"
+import { CellModel, CoordsModel } from "../models/Cell.model"
 
 export class Cell implements CellModel {
 
@@ -7,13 +7,15 @@ export class Cell implements CellModel {
     isMine: boolean
     isMarked: boolean
     htmlStr: string
+    coords: CoordsModel
 
-    constructor(svg = '', minesAround = 0, isShown = false, isMine = false, isMarked = false) {
+    constructor(svg = '', coords: CoordsModel, minesAround = 0, isShown = false, isMine = false, isMarked = false) {
         this.minesAround = minesAround
         this.isShown = isShown
         this.isMine = isMine
         this.isMarked = isMarked
         this.htmlStr = svg
+        this.coords = coords
     }
 
     //Getters
@@ -33,6 +35,10 @@ export class Cell implements CellModel {
 
     getHtmlStr(): string {
         return this.htmlStr
+    }
+
+    getCoords(): CoordsModel {
+        return this.coords
     }
 
 

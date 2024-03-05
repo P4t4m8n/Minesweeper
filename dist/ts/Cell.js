@@ -1,10 +1,11 @@
 export class Cell {
-    constructor(svg = '', minesAround = 0, isShown = false, isMine = false, isMarked = false) {
+    constructor(svg = '', coords, minesAround = 0, isShown = false, isMine = false, isMarked = false) {
         this.minesAround = minesAround;
         this.isShown = isShown;
         this.isMine = isMine;
         this.isMarked = isMarked;
         this.htmlStr = svg;
+        this.coords = coords;
     }
     //Getters
     getMine() {
@@ -21,6 +22,9 @@ export class Cell {
     }
     getHtmlStr() {
         return this.htmlStr;
+    }
+    getCoords() {
+        return this.coords;
     }
     //Setters
     setMine() {

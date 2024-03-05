@@ -1,5 +1,6 @@
 import { Board } from "./Board.js";
 import { Timer } from "./Timer.js";
+import { Util } from "./util.js";
 export class Game {
     constructor(boardSize = 4, mines = 2) {
         this.isOn = false;
@@ -8,6 +9,7 @@ export class Game {
         this.shownCount = 0;
         this.markedCount = 0;
         this.lifes = 3;
+        this.safeClicks = 3;
         this.mines = mines;
         this.size = boardSize;
         this.board = new Board(boardSize);
@@ -17,7 +19,9 @@ export class Game {
         this.board.placeMines(this.mines, cellCord);
         this.board.countMinesAround();
         this.setLifes(3);
-        this.isOn = true;
+        this.setSafeClicks(3);
+        this.setHintCount(3);
+        this.setIsOn(true);
         this.time.start();
     }
     checkWin() {
@@ -28,7 +32,7 @@ export class Game {
     }
     expandShown(rowIdx, colIdx) {
         let expandedCells = [];
-        this.board.countNeighbors(rowIdx, colIdx, (cell, i, j) => {
+        this.board.neighborsLoop(rowIdx, colIdx, (cell, i, j) => {
             if (cell.isShown || cell.isMine || cell.isMarked)
                 return expandedCells;
             this.board.board[i][j].setShown();
@@ -49,6 +53,20 @@ export class Game {
         this.time = new Timer();
         this.time.render();
         this.board = new Board(boardSize);
+    }
+    safeClick() {
+        if (this.safeClicks <= 0)
+            return 'no more safe clicks';
+        console.log(Math.pow(this.size, 2));
+        if (Math.pow(this.size, 2) - this.shownCount <= +this.mines - (3 - this.lifes))
+            return 'no more free cells';
+        let rndRow = Util.getRandomInt(this.size);
+        let rndCol = Util.getRandomInt(this.size);
+        let cell = this.board.board[rndRow][rndCol];
+        if (cell.getShown() || cell.getMine())
+            return this.safeClick();
+        this.safeClicks = this.safeClicks - 1;
+        return cell;
     }
     //Getters
     getIsOn() {
@@ -78,9 +96,15 @@ export class Game {
     getIsHint() {
         return this.isHint;
     }
+    getHintsCount() {
+        return this.hintCount;
+    }
+    getSafeClicks() {
+        return this.safeClicks;
+    }
     //Setters
-    setIsOn() {
-        this.isOn = !this.isOn;
+    setIsOn(isOn) {
+        this.isOn = isOn;
     }
     setLifes(amount) {
         this.lifes = amount;
@@ -96,5 +120,14 @@ export class Game {
     }
     setBoard(board) {
         this.board = board;
+    }
+    setHintCount(amount) {
+        this.hintCount = amount;
+    }
+    setIsHint(isHint) {
+        this.isHint = isHint;
+    }
+    setSafeClicks(amount) {
+        this.safeClicks = amount;
     }
 }

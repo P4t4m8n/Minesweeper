@@ -14,7 +14,7 @@ export class Board {
         for (let i = 0; i < size; i++) {
             this.board[i] = new Array(size)
             for (let j = 0; j < size; j++) {
-                this.board[i][j] = new Cell('<span>0</span>')
+                this.board[i][j] = new Cell('<span>0</span>', { row: i, col: j })
             }
         }
     }
@@ -40,10 +40,10 @@ export class Board {
             for (let j = 0; j < size; j++) {
                 if (this.board[i][j].getMine()) continue
                 let minesAround = 0
-                this.countNeighbors(i, j, (cell) => {
+                this.neighborsLoop(i, j, (cell) => {
                     if (cell.getMine()) minesAround++
                 })
-                 
+
                 this.board[i][j].setMinesAround(minesAround)
                 this.board[i][j].setHtmlStr(this.#getNumberHtml(minesAround))
 
@@ -52,7 +52,7 @@ export class Board {
 
     }
 
-    countNeighbors(row: number, col: number, callback: (cell: Cell, i: number, j: number) => void): void {
+    neighborsLoop(row: number, col: number, callback: (cell: Cell, i: number, j: number) => void): void {
         for (let i = row - 1; i <= row + 1; i++) {
             if (i < 0 || i >= this.board.length) continue;
 
