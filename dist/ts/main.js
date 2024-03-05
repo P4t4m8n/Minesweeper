@@ -42,21 +42,14 @@ function renderCell(renderType, row, col, isContext = false) {
     }
     elSpan.innerHTML = renderType;
 }
-function rednerLifes(lifes) {
-    const elLifes = document.querySelector('.life');
-    elLifes.innerText = lifes.toString();
-}
-function renderShown(shownCount) {
-    const elShown = document.querySelector('.shown');
-    elShown.innerText = shownCount.toString();
-}
-function renderMarked(marked) {
-    const elMarked = document.querySelector('.marked');
-    elMarked.innerText = marked.toString();
-}
-function renderRestartSvg(svg) {
-    const elRestart = document.querySelector('.restart-svg');
-    elRestart.innerHTML = svg;
+function renderUI(selector, value) {
+    const el = document.querySelector(selector);
+    if (typeof value === 'string') {
+        el.innerHTML = value;
+    }
+    else {
+        el.innerText = value.toString();
+    }
 }
 //EVENTS
 function onCellClick(ev, game) {
@@ -73,8 +66,8 @@ function onCellClick(ev, game) {
     if (!game.getIsOn()) {
         game.startGame({ row, col });
         let lifes = game.getLifes();
-        rednerLifes(lifes);
-        renderRestartSvg(_getWorriedSmiley());
+        renderUI('.life', lifes);
+        renderUI('.restart-svg', _getWorriedSmiley());
     }
     const cell = game.getCellInstance(row, col);
     let renderType = `<span>0</span>`;
@@ -86,7 +79,7 @@ function onCellClick(ev, game) {
     if (cell.getMine()) {
         let lifes = game.getLifes() - 1;
         game.setLifes(lifes);
-        rednerLifes(lifes);
+        renderUI('.life', lifes);
         renderType = _getBombSvg();
     }
     else if (cell.getMinesAround() > 0) {
@@ -100,7 +93,7 @@ function onCellClick(ev, game) {
         showCount = game.getShowCount();
     }
     renderCell(renderType, row, col);
-    renderShown(showCount);
+    renderUI('.shown', showCount);
     let isWin = game.checkWin();
     if (isWin)
         onGameOver(isWin, game);
@@ -138,7 +131,7 @@ function onContextClick(ev, game) {
     }
     cell.setMarked();
     renderCell(renderType, row, col, true);
-    renderMarked(markedCount);
+    renderUI('.marked', markedCount);
     let isWin = game.checkWin();
     if (isWin)
         onGameOver(isWin, game);
@@ -165,12 +158,12 @@ function onLevelChange(ev, game, size) {
 function onGameOver(isWin, game) {
     if (isWin) {
         alert('Win');
-        renderRestartSvg(_getHappySMiley());
+        renderUI('.restart-svg', _getHappySMiley());
     }
     else {
         alert('Lose');
         _revealMines(game.getBoard());
-        renderRestartSvg(_getSadSmiley());
+        renderUI('.restart-svg', _getSadSmiley());
     }
     game.gameOver(isWin);
 }

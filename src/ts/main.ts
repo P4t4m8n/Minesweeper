@@ -67,26 +67,18 @@ function renderCell(renderType: string, row: number, col: number, isContext = fa
     elSpan.innerHTML = renderType
 }
 
-function rednerLifes(lifes: number): void {
+function renderUI(selector: string, value: number | string): void {
+    const el = document.querySelector(selector) as HTMLSpanElement
 
-    const elLifes = document.querySelector('.life') as HTMLSpanElement
-    elLifes.innerText = lifes.toString()
+    if (typeof value === 'string') {
+        el.innerHTML = value
+    } else {
+        el.innerText = value.toString()
+    }
+
 }
 
-function renderShown(shownCount: number): void {
-    const elShown = document.querySelector('.shown') as HTMLSpanElement
-    elShown.innerText = shownCount.toString()
-}
 
-function renderMarked(marked: number): void {
-    const elMarked = document.querySelector('.marked') as HTMLSpanElement
-    elMarked.innerText = marked.toString()
-}
-
-function renderRestartSvg(svg: string): void {
-    const elRestart = document.querySelector('.restart-svg') as HTMLOrSVGScriptElement
-    elRestart.innerHTML = svg
-}
 
 //EVENTS
 function onCellClick(ev: Event, game: Game): void {
@@ -109,8 +101,8 @@ function onCellClick(ev: Event, game: Game): void {
 
         game.startGame({ row, col })
         let lifes = game.getLifes()
-        rednerLifes(lifes)
-        renderRestartSvg(_getWorriedSmiley())
+        renderUI('.life', lifes)
+        renderUI('.restart-svg', _getWorriedSmiley())
     }
 
     const cell = game.getCellInstance(row, col)
@@ -125,7 +117,7 @@ function onCellClick(ev: Event, game: Game): void {
     if (cell.getMine()) {
         let lifes = game.getLifes() - 1
         game.setLifes(lifes)
-        rednerLifes(lifes)
+        renderUI('.life', lifes)
         renderType = _getBombSvg()
     }
 
@@ -143,7 +135,7 @@ function onCellClick(ev: Event, game: Game): void {
 
     renderCell(renderType, row, col)
 
-    renderShown(showCount)
+    renderUI('.shown', showCount)
 
     let isWin = game.checkWin()
     if (isWin) onGameOver(isWin, game)
@@ -192,7 +184,7 @@ function onContextClick(ev: Event, game: Game) {
 
     cell.setMarked()
     renderCell(renderType, row, col, true)
-    renderMarked(markedCount)
+    renderUI('.marked', markedCount)
 
     let isWin = game.checkWin()
     if (isWin) onGameOver(isWin, game)
@@ -228,17 +220,17 @@ function onLevelChange(ev: Event, game: Game, size: number) {
 function onGameOver(isWin: boolean, game: Game) {
     if (isWin) {
         alert('Win')
-        renderRestartSvg(_getHappySMiley())
+        renderUI('.restart-svg', _getHappySMiley())
     }
     else {
         alert('Lose')
         _revealMines(game.getBoard())
-        renderRestartSvg(_getSadSmiley())
+        renderUI('.restart-svg',_getSadSmiley())
     }
     game.gameOver(isWin)
 }
 
-function onRestart(ev:Event,game:Game):void{
+function onRestart(ev: Event, game: Game): void {
 
 }
 
