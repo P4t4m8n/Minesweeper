@@ -102,6 +102,10 @@ export class Game {
         return this.board
     }
 
+    getSize(): number {
+        return this.size
+    }
+
     //Setters
 
     setIsOn(): void {

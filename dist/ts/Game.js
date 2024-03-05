@@ -70,6 +70,9 @@ export class Game {
     getBoard() {
         return this.board;
     }
+    getSize() {
+        return this.size;
+    }
     //Setters
     setIsOn() {
         this.isOn = !this.isOn;

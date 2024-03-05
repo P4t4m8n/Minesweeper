@@ -7,7 +7,7 @@ function onInit() {
 }
 function handleEventListeners(game) {
     const elRestartBtn = document.querySelector('.restart');
-    elRestartBtn.addEventListener('click', () => game.restart());
+    elRestartBtn.addEventListener('click', (ev) => onRestart(ev, game, game.getSize(), game.getMines()));
     const elSizeBtns = document.querySelectorAll('.size-btn');
     elSizeBtns.forEach((el, idx) => {
         ++idx;
@@ -152,7 +152,7 @@ function onExpandShown(rowIdx, colIdx, game) {
 function onLevelChange(ev, game, size) {
     ev.preventDefault();
     let mines = _getMinesAmount(size);
-    game.restart(size, mines);
+    onRestart(ev, game, size, mines);
     renderBoard(size);
 }
 function onGameOver(isWin, game) {
@@ -167,7 +167,14 @@ function onGameOver(isWin, game) {
     }
     game.gameOver(isWin);
 }
-function onRestart(ev, game) {
+function onRestart(ev, game, size, mines) {
+    ev.preventDefault();
+    game.restart(size, mines);
+    renderBoard(size);
+    renderUI('.life', 0);
+    renderUI('.shown', 0);
+    renderUI('.marked', 0);
+    renderUI('.restart-svg', _getSmileySvg());
 }
 //Util
 function _revealMines(board) {

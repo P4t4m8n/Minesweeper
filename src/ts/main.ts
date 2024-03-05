@@ -15,7 +15,7 @@ function onInit(): void {
 function handleEventListeners(game: Game): void {
 
     const elRestartBtn = document.querySelector('.restart') as HTMLButtonElement
-    elRestartBtn.addEventListener('click', () => game.restart())
+    elRestartBtn.addEventListener('click', (ev) => onRestart(ev, game, game.getSize(), game.getMines()))
 
     const elSizeBtns = document.querySelectorAll('.size-btn') as NodeList
     elSizeBtns.forEach((el, idx) => {
@@ -77,8 +77,6 @@ function renderUI(selector: string, value: number | string): void {
     }
 
 }
-
-
 
 //EVENTS
 function onCellClick(ev: Event, game: Game): void {
@@ -212,7 +210,7 @@ function onLevelChange(ev: Event, game: Game, size: number) {
     ev.preventDefault()
 
     let mines = _getMinesAmount(size)
-    game.restart(size, mines)
+    onRestart(ev, game, size, mines)
     renderBoard(size)
 
 }
@@ -225,13 +223,21 @@ function onGameOver(isWin: boolean, game: Game) {
     else {
         alert('Lose')
         _revealMines(game.getBoard())
-        renderUI('.restart-svg',_getSadSmiley())
+        renderUI('.restart-svg', _getSadSmiley())
     }
     game.gameOver(isWin)
 }
 
-function onRestart(ev: Event, game: Game): void {
+function onRestart(ev: Event, game: Game, size: number, mines: number): void {
+    ev.preventDefault()
+    
+    game.restart(size, mines)
 
+    renderBoard(size)
+    renderUI('.life', 0);
+    renderUI('.shown', 0);
+    renderUI('.marked', 0)
+    renderUI('.restart-svg', _getSmileySvg())
 }
 
 //Util
