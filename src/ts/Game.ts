@@ -1,8 +1,9 @@
 import { CoordsModel } from "../models/Cell.model.js"
 import { Board } from "./Board.js"
 import { Cell } from "./Cell.js"
+import { Stack } from "./Stack.js"
 import { Timer } from "./Timer.js"
-import { Util } from "./util.js"
+import { Util } from "./Util.js"
 export class Game {
 
     private isOn = false
@@ -11,20 +12,20 @@ export class Game {
     private shownCount = 0
     private markedCount = 0
     private mines: number
-    private time: Timer
+    private time!: Timer
     private lifes = 3
     private board: Board
     private size: number
     private safeClicks = 3
     private isManuallMines = false
     private placedMines = 0
+    private stack!: any
 
     constructor(boardSize = 4, mines = 2) {
         this.mines = mines
         this.size = boardSize
 
         this.board = new Board(boardSize)
-        this.time = new Timer()
 
     }
 
@@ -32,12 +33,14 @@ export class Game {
 
         if (!this.isManuallMines) this.board.placeMines(this.mines, cellCord)
         this.board.countMinesAround()
+        this.time = new Timer()
 
         this.setLifes(3)
         this.setSafeClicks(3)
         this.setHintCount(3)
         this.setIsOn(true)
         this.time.start()
+        this.stack = new Stack()
 
     }
 
@@ -107,9 +110,34 @@ export class Game {
         const { row, col } = coords
         const cell = this.board.board[row][col]
         this.board.placeMine(cell)
-        
+
         this.setPlacedMines(this.placedMines - 1)
 
+    }
+
+    saveMove(): void {
+
+        const gameTemplate = new Game(this.size, this.mines)
+
+        gameTemplate.setShowCount(this.shownCount)
+        gameTemplate.setMarkedCount(this.markedCount)
+        gameTemplate.setLifes(this.lifes)
+        gameTemplate.setBoard(this.board.clone())
+
+        // const cloneObj = Util.deepClone(gameTemplate)
+        this.stack.push(gameTemplate)
+
+        console.log("this.stack:", this.stack)
+    }
+
+    undo(): void {
+        const savedGame: Game = this.stack.pop()
+        console.log("savedGame:", savedGame)
+        this.shownCount = savedGame.getShowCount()
+        this.markedCount = savedGame.getMarkCount()
+        this.lifes = savedGame.getLifes()
+        this.board = savedGame.getBoard()
+    
     }
 
     //Getters

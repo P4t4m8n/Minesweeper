@@ -1,5 +1,5 @@
 import { Cell } from "./Cell.js"
-import { Util } from "./util.js"
+import { Util } from "./Util.js"
 
 export class Board {
 
@@ -69,6 +69,21 @@ export class Board {
             }
         }
     }
+
+    clone(): Board {
+
+        const clonedBoard = new Board(this.board.length)
+
+        for (let i = 0; i < this.board.length; i++) {
+            for (let j = 0; j < this.board.length; j++) {
+                clonedBoard.board[i][j] = this.board[i][j].clone();
+            }
+        }
+        return clonedBoard;
+    }
+
+
+    //Getters
 
     getCell(row: number, col: number): Cell {
         return this.board[row][col]

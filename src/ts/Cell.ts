@@ -18,7 +18,11 @@ export class Cell implements CellModel {
         this.coords = coords
     }
 
-    
+    clone(): Cell {
+        return new Cell(this.htmlStr, this.coords, this.minesAround, this.isShown, this.isMine, this.isMarked)
+    }
+
+
 
     //Getters
 
@@ -46,7 +50,7 @@ export class Cell implements CellModel {
 
     //Setters
 
-    setMine(isMine:boolean): void {
+    setMine(isMine: boolean): void {
         this.isMine = isMine
     }
 
