@@ -25,6 +25,10 @@ function handleEventListeners(game) {
     elSafeClickBtn === null || elSafeClickBtn === void 0 ? void 0 : elSafeClickBtn.addEventListener('click', () => onSafeClick(game));
     const elManuallyCreateBtn = document.querySelector('.manually-create');
     elManuallyCreateBtn === null || elManuallyCreateBtn === void 0 ? void 0 : elManuallyCreateBtn.addEventListener('click', () => onManuallyCreate(game));
+    const elUndoBtn = document.querySelector('.undo');
+    elUndoBtn === null || elUndoBtn === void 0 ? void 0 : elUndoBtn.addEventListener('click', (ev) => onUndo(ev, game));
+    const elDarkBtn = document.querySelector('.toggle-dark');
+    elDarkBtn === null || elDarkBtn === void 0 ? void 0 : elDarkBtn.addEventListener('click', onToggleDarkMode);
 }
 //RENDERS
 function renderBoard(size) {
@@ -77,7 +81,9 @@ function renderUI(selector, value) {
 }
 //EVENTS
 function onCellClick(ev, game) {
+    console.log('click');
     ev.preventDefault();
+    ev.stopPropagation();
     const target = ev.target;
     if (!target.classList.contains('cell'))
         return;
@@ -97,15 +103,14 @@ function onCellClick(ev, game) {
         gameStart(game, { row, col });
     }
     const cell = game.getCellInstance(row, col);
-    if (cell.getShown())
-        return;
-    if (cell.getMarked())
+    if (cell.getShown() || cell.getMarked())
         return;
     if (game.getIsHint()) {
         _handleRevealNeighbours(row, col, game, cell);
         game.setIsHint(false);
         return;
     }
+    game.saveMove();
     let showCount = game.getShowCount();
     if (cell.getMine()) {
         let lifes = game.getLifes() - 1;
@@ -203,6 +208,25 @@ function onSafeClick(game) {
 function onManuallyCreate(game) {
     game.setIsManuallMines(true);
     game.setPlacedMines(game.getMines());
+}
+function onUndo(ev, game) {
+    ev.preventDefault();
+    game.undo();
+    renderBoard(game.getSize());
+    game.getBoard().board.forEach((row, rowIdx) => row.forEach((cell, colIdx) => {
+        console.log("cell:", cell);
+        if (cell.getShown())
+            renderCell(cell.getHtmlStr(), rowIdx, colIdx);
+    }));
+    renderUI('.shown', game.getShowCount());
+    renderUI('.marked', game.getMarkCount());
+    renderUI('.life', game.getLifes());
+}
+function onToggleDarkMode() {
+    var _a;
+    (_a = document.querySelector('body')) === null || _a === void 0 ? void 0 : _a.classList.toggle('dark-mode');
+    const elBtn = document.querySelector('.toggle-dark');
+    elBtn.innerText = (elBtn.innerText === 'Dark Mode') ? 'Normal Mode' : 'Dark Mode';
 }
 //Methods
 function gameStart(game, coords) {
@@ -319,14 +343,14 @@ function _getHappySMileySvg() {
         </svg>`);
 }
 function _getLightBulbSvg(idx = '') {
-    return (`<svg class=hint${idx} viewBox="0 0 24 24" >
+    return (`<svg class=hint hint${idx} viewBox="0 0 24 24" >
         <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
         <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
         <g id="SVGRepo_iconCarrier"> <path d="M10.063 8.5C10.0219 8.34019 10 8.17265 10 8C10 6.89543 10.8954 6 12 6C12.1413 6 12.2792 6.01466 12.4122 6.04253M5.6 21H18.4C18.9601 21 19.2401 21 19.454 20.891C19.6422 20.7951 19.7951 20.6422 19.891 20.454C20 20.2401 20 19.9601 20 19.4V18.6C20 18.0399 20 17.7599 19.891 17.546C19.7951 17.3578 19.6422 17.2049 19.454 17.109C19.2401 17 18.9601 17 18.4 17H5.6C5.03995 17 4.75992 17 4.54601 17.109C4.35785 17.2049 4.20487 17.3578 4.10899 17.546C4 17.7599 4 18.0399 4 18.6V19.4C4 19.9601 4 20.2401 4.10899 20.454C4.20487 20.6422 4.35785 20.7951 4.54601 20.891C4.75992 21 5.03995 21 5.6 21ZM17 14V8C17 5.23858 14.7614 3 12 3C9.23858 3 7 5.23858 7 8V14H17Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g>
         </svg>`);
 }
 function _getLightBulbActiveSvg() {
-    return (`<svg viewBox="0 0 24 24" >
+    return (`<svg class=hint viewBox="0 0 24 24" >
         <g id="SVGRepo_bgCarrier" stroke-width="0">
         </g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
         <g id="SVGRepo_iconCarrier"> <path fill="yellow" d="M10.063 8.5C10.0219 8.34019 10 8.17265 10 8C10 6.89543 10.8954 6 12 6C12.1413 6 12.2792 6.01466 12.4122 6.04253M5 4L3 3M19 4L21 3M4 10H3M21 10H20M5.6 21H18.4C18.9601 21 19.2401 21 19.454 20.891C19.6422 20.7951 19.7951 20.6422 19.891 20.454C20 20.2401 20 19.9601 20 19.4V18.6C20 18.0399 20 17.7599 19.891 17.546C19.7951 17.3578 19.6422 17.2049 19.454 17.109C19.2401 17 18.9601 17 18.4 17H5.6C5.03995 17 4.75992 17 4.54601 17.109C4.35785 17.2049 4.20487 17.3578 4.10899 17.546C4 17.7599 4 18.0399 4 18.6V19.4C4 19.9601 4 20.2401 4.10899 20.454C4.20487 20.6422 4.35785 20.7951 4.54601 20.891C4.75992 21 5.03995 21 5.6 21ZM17 14V8C17 5.23858 14.7614 3 12 3C9.23858 3 7 5.23858 7 8V14H17Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g>

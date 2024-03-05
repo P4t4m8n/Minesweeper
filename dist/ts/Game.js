@@ -1,6 +1,7 @@
 import { Board } from "./Board.js";
+import { Stack } from "./Stack.js";
 import { Timer } from "./Timer.js";
-import { Util } from "./util.js";
+import { Util } from "./Util.js";
 export class Game {
     constructor(boardSize = 4, mines = 2) {
         this.isOn = false;
@@ -15,17 +16,18 @@ export class Game {
         this.mines = mines;
         this.size = boardSize;
         this.board = new Board(boardSize);
-        this.time = new Timer();
     }
     startGame(cellCord) {
         if (!this.isManuallMines)
             this.board.placeMines(this.mines, cellCord);
         this.board.countMinesAround();
+        this.time = new Timer();
         this.setLifes(3);
         this.setSafeClicks(3);
         this.setHintCount(3);
         this.setIsOn(true);
         this.time.start();
+        this.stack = new Stack();
     }
     checkWin() {
         return this.markedCount + this.shownCount === Math.pow(this.size, 2);
@@ -78,6 +80,24 @@ export class Game {
         const cell = this.board.board[row][col];
         this.board.placeMine(cell);
         this.setPlacedMines(this.placedMines - 1);
+    }
+    saveMove() {
+        const gameTemplate = new Game(this.size, this.mines);
+        gameTemplate.setShowCount(this.shownCount);
+        gameTemplate.setMarkedCount(this.markedCount);
+        gameTemplate.setLifes(this.lifes);
+        gameTemplate.setBoard(this.board.clone());
+        // const cloneObj = Util.deepClone(gameTemplate)
+        this.stack.push(gameTemplate);
+        console.log("this.stack:", this.stack);
+    }
+    undo() {
+        const savedGame = this.stack.pop();
+        console.log("savedGame:", savedGame);
+        this.shownCount = savedGame.getShowCount();
+        this.markedCount = savedGame.getMarkCount();
+        this.lifes = savedGame.getLifes();
+        this.board = savedGame.getBoard();
     }
     //Getters
     getIsOn() {

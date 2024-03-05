@@ -5,7 +5,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _Board_instances, _Board_getBombSvg, _Board_getNumberHtml;
 import { Cell } from "./Cell.js";
-import { Util } from "./util.js";
+import { Util } from "./Util.js";
 export class Board {
     constructor(size) {
         _Board_instances.add(this);
@@ -66,6 +66,16 @@ export class Board {
             }
         }
     }
+    clone() {
+        const clonedBoard = new Board(this.board.length);
+        for (let i = 0; i < this.board.length; i++) {
+            for (let j = 0; j < this.board.length; j++) {
+                clonedBoard.board[i][j] = this.board[i][j].clone();
+            }
+        }
+        return clonedBoard;
+    }
+    //Getters
     getCell(row, col) {
         return this.board[row][col];
     }

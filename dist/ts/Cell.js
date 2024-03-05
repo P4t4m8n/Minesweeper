@@ -7,6 +7,9 @@ export class Cell {
         this.htmlStr = svg;
         this.coords = coords;
     }
+    clone() {
+        return new Cell(this.htmlStr, this.coords, this.minesAround, this.isShown, this.isMine, this.isMarked);
+    }
     //Getters
     getMine() {
         return this.isMine;
