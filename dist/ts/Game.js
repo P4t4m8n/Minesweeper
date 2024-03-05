@@ -33,9 +33,9 @@ export class Game {
                 return expandedCells;
             this.board.board[i][j].setShown();
             this.shownCount++;
+            let htmlStr = cell.getHtmlStr();
             let minesAround = cell.getMinesAround();
-            expandedCells.push({ minesAround, row: i, col: j });
-            console.log("cell:", cell);
+            expandedCells.push({ htmlStr, row: i, col: j, minesAround });
         });
         return expandedCells;
     }

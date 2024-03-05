@@ -6,12 +6,14 @@ export class Cell implements CellModel {
     isShown: boolean
     isMine: boolean
     isMarked: boolean
+    htmlStr: string
 
-    constructor(minesAround = 0, isShown = false, isMine = false, isMarked = false) {
+    constructor(svg = '', minesAround = 0, isShown = false, isMine = false, isMarked = false) {
         this.minesAround = minesAround
         this.isShown = isShown
         this.isMine = isMine
         this.isMarked = isMarked
+        this.htmlStr = svg
     }
 
     //Getters
@@ -29,8 +31,13 @@ export class Cell implements CellModel {
         return this.minesAround
     }
 
+    getHtmlStr(): string {
+        return this.htmlStr
+    }
+
 
     //Setters
+
     setMine(): void {
         this.isMine = !this.isMine
     }
@@ -45,5 +52,9 @@ export class Cell implements CellModel {
 
     setMinesAround(mines: number): void {
         this.minesAround = mines
+    }
+
+    setHtmlStr(str: string): void {
+        this.htmlStr = str
     }
 }

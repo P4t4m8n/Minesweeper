@@ -40,18 +40,18 @@ export class Game {
         this.time.stop()
     }
 
-    expandShown(rowIdx: number, colIdx: number): { minesAround: number, row: number, col: number }[] {
-        let expandedCells: { row: number; col: number; minesAround: number }[] = []
+    expandShown(rowIdx: number, colIdx: number): { htmlStr: string, row: number, col: number, minesAround: number }[] {
+        let expandedCells: { row: number; col: number; htmlStr: string, minesAround: number }[] = []
 
         this.board.countNeighbors(rowIdx, colIdx, (cell, i, j) => {
             if (cell.isShown || cell.isMine || cell.isMarked) return expandedCells
 
             this.board.board[i][j].setShown();
             this.shownCount++;
-            let minesAround = cell.getMinesAround();
+            let htmlStr = cell.getHtmlStr();
+            let minesAround = cell.getMinesAround()
 
-            expandedCells.push({ minesAround, row: i, col: j })
-            console.log("cell:", cell)
+            expandedCells.push({ htmlStr, row: i, col: j, minesAround })
 
         })
 
@@ -108,7 +108,7 @@ export class Game {
         return this.size
     }
 
-    getIsHint():boolean{
+    getIsHint(): boolean {
         return this.isHint
     }
 
