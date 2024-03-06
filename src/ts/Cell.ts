@@ -39,11 +39,11 @@ export class Cell {
         return this._minesAround
     }
 
-    get HtmlStr(): string {
+    get htmlStr(): string {
         return this._htmlStr
     }
 
-    get Coords(): CoordsModel {
+    get coords(): CoordsModel {
         return this._coords
     }
 
@@ -66,7 +66,7 @@ export class Cell {
         this._minesAround = mines
     }
 
-    set HtmlStr(str: string) {
+    set htmlStr(str: string) {
         this._htmlStr = str
     }
 }

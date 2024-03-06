@@ -1,4 +1,6 @@
 import { Game } from "./Game.js";
+const CLICK = 'click';
+const CONTEXTMENU = 'contextmenu';
 document.addEventListener('DOMContentLoaded', () => onInit());
 function onInit() {
     let game = new Game();
@@ -8,30 +10,31 @@ function onInit() {
 }
 function handleEventListeners(game) {
     const elRestartBtn = document.querySelector('.restart');
-    elRestartBtn.addEventListener('click', (ev) => onRestart(ev, game, game.getSize(), game.getMines()));
+    EventManager.addEventListener(elRestartBtn, CLICK, onRestart, game, game.size, game.mines);
     const elSizeBtns = document.querySelectorAll('.size-btn');
-    elSizeBtns.forEach((el, idx) => {
+    elSizeBtns.forEach((elBtn, idx) => {
         ++idx;
-        el.addEventListener('click', (ev) => onLevelChange(ev, game, 4 * idx));
+        let size = 4 * idx;
+        EventManager.addEventListener(elBtn, CLICK, onLevelChange, game, size);
     });
     const elBoard = document.querySelector('.board-container');
     if (elBoard) {
-        elBoard.addEventListener('click', (ev) => onCellClick(ev, game));
-        elBoard.addEventListener('contextmenu', (ev) => onContextClick(ev, game));
+        EventManager.addEventListener(elBoard, CLICK, onCellClick, game);
+        EventManager.addEventListener(elBoard, CONTEXTMENU, onContextClick, game);
     }
     const elHints = document.querySelector('.hint-con');
     const elHintsBtns = elHints.querySelectorAll('button');
-    elHintsBtns.forEach((button, idx) => button.addEventListener('click', () => onHint(game, idx)));
+    elHintsBtns.forEach((button, idx) => EventManager.addEventListener(button, CLICK, onHint, game, idx));
     const elSafeClickBtn = document.querySelector('.safe-click button');
-    elSafeClickBtn === null || elSafeClickBtn === void 0 ? void 0 : elSafeClickBtn.addEventListener('click', () => onSafeClick(game));
+    EventManager.addEventListener(elSafeClickBtn, CLICK, onSafeClick, game);
     const elManuallyCreateBtn = document.querySelector('.manually-create');
-    elManuallyCreateBtn === null || elManuallyCreateBtn === void 0 ? void 0 : elManuallyCreateBtn.addEventListener('click', () => onManuallyCreate(game));
+    EventManager.addEventListener(elManuallyCreateBtn, CLICK, onManuallyCreate, game);
     const elUndoBtn = document.querySelector('.undo');
-    elUndoBtn === null || elUndoBtn === void 0 ? void 0 : elUndoBtn.addEventListener('click', (ev) => onUndo(ev, game));
+    EventManager.addEventListener(elUndoBtn, CLICK, onUndo, game);
     const elDarkBtn = document.querySelector('.toggle-dark');
-    elDarkBtn === null || elDarkBtn === void 0 ? void 0 : elDarkBtn.addEventListener('click', onToggleDarkMode);
+    EventManager.addEventListener(elDarkBtn, CLICK, onToggleDarkMode);
     const elMegaHintBtn = document.querySelector('.mega-hint');
-    elMegaHintBtn === null || elMegaHintBtn === void 0 ? void 0 : elMegaHintBtn.addEventListener('click', () => onMegaHint(game));
+    EventManager.addEventListener(elMegaHintBtn, CLICK, onMegaHint, game);
 }
 //RENDERS
 function renderBoard(size) {
@@ -44,6 +47,16 @@ function renderBoard(size) {
         elBoard.style.gridTemplateRows = `repeat(${size}, ${cellSize})`;
         elBoard.innerHTML = strHtml.flat().join("");
     }
+}
+function renderCells(els, game, htmlStr, isContext = false, isHint = false) {
+    els.forEach(el => {
+        var _a, _b;
+        const row = parseInt((_a = el.getAttribute('data-row')) !== null && _a !== void 0 ? _a : '');
+        const col = parseInt((_b = el.getAttribute('data-col')) !== null && _b !== void 0 ? _b : '');
+        const cell = game.getCellInstance({ row, col });
+        let str = htmlStr ? htmlStr : cell.htmlStr;
+        renderCell(str, { row, col }, isContext, isHint);
+    });
 }
 function renderCell(renderType, coords, isContext = false, isHint = false) {
     const { row, col } = coords;
@@ -97,53 +110,54 @@ function onCellClick(ev, game) {
     const row = parseInt(rowStr);
     const col = parseInt(colStr);
     const coords = { row, col };
-    if (game.getIsManuallMines() && game.getPlacedMines() > 0) {
-        return _ManuallyPlaceMines(game, coords);
+    if (game.isManuallMines && game.placedMines > 0) {
+        return manuallyPlaceMines(game, coords);
     }
-    if (game.getPlacedMines() === 0) {
-        _removeClasses('.mine-placed');
+    if (game.placedMines === 0) {
+        removeClasses('.mine-placed');
     }
-    if (!game.getIsOn()) {
+    if (!game.isOn) {
         gameStart(game, coords);
     }
     const cell = game.getCellInstance(coords);
-    if (cell.getShown() || cell.getMarked())
+    if (cell.isShown || cell.isMarked)
         return;
-    if (game.getIsHint()) {
-        _handleRevealNeighbours(coords, game, cell);
-        game.setIsHint(false);
+    if (game.isHint) {
+        handleRevealNeighbours(coords, game, cell);
+        game.isHint = false;
         return;
     }
-    if (game.getIsMegaHint()) {
-        _handleMegaHint(game, cell, coords);
+    if (game.isMegaHint) {
+        handleMegaHint(game, cell, coords);
         return;
     }
     game.saveMove();
-    let showCount = game.getShowCount();
-    if (cell.getMine()) {
-        let lifes = game.getLifes() - 1;
-        game.setLifes(lifes);
-        renderUI('.life', lifes);
+    let showCount = game.shownCount;
+    if (cell.isMine) {
+        game.lifes = game.lifes - 1;
+        renderUI('.life', game.lifes);
+        if (game.checkLose())
+            return gameOver(!game.checkLose(), game);
     }
-    else if (cell.getMinesAround() > 0) {
-        cell.setShown();
+    else if (cell.MinesAround > 0) {
+        cell.isShown = true;
         showCount += 1;
-        game.setShowCount(showCount);
+        game.shownCount = showCount;
     }
     else {
-        _expandShown(coords, game);
-        showCount = game.getShowCount();
+        expandShown(coords, game);
+        showCount = game.shownCount;
     }
-    renderCell(cell.getHtmlStr(), coords);
+    renderCell(cell.htmlStr, coords);
     renderUI('.shown', showCount);
     let isWin = game.checkWin();
     if (isWin)
-        _gameOver(isWin, game);
+        gameOver(isWin, game);
 }
 function onContextClick(ev, game) {
     ev.preventDefault();
     ev.stopPropagation();
-    if (!game.getIsOn())
+    if (!game.isOn)
         return;
     let target = ev.target;
     if (target.nodeName !== 'DIV') {
@@ -159,29 +173,30 @@ function onContextClick(ev, game) {
     const col = parseInt(colStr);
     const coords = { row, col };
     const cell = game.getCellInstance(coords);
-    if (cell.getShown())
+    if (cell.isShown)
         return;
-    const isMarked = cell.getMarked();
-    const markedCount = game.getMarkCount();
+    const isMarked = cell.isMarked;
     let renderType = `<span> </span>`;
-    if (isMarked)
-        game.setMarkedCount(markedCount - 1);
-    else {
-        if (markedCount >= game.getMines())
-            return alert('Max flags');
-        game.setMarkedCount(markedCount + 1);
-        renderType = _getMarkedSvg();
+    if (isMarked) {
+        game.markedCount = game.markedCount - 1;
+        cell.isMarked = false;
     }
-    cell.setMarked();
+    else {
+        if (game.markedCount >= game.mines)
+            return alert('Max flags');
+        game.markedCount = game.markedCount + 1;
+        renderType = _getMarkedSvg();
+        cell.isMarked = true;
+    }
     renderCell(renderType, coords, true);
-    renderUI('.marked', markedCount);
+    renderUI('.marked', game.markedCount);
     let isWin = game.checkWin();
     if (isWin)
-        _gameOver(isWin, game);
+        gameOver(isWin, game);
 }
 function onLevelChange(ev, game, size) {
     ev.preventDefault();
-    let mines = _getMinesAmount(size);
+    let mines = getMinesAmount(size);
     onRestart(ev, game, size, mines);
     renderBoard(size);
 }
@@ -189,46 +204,46 @@ function onRestart(ev, game, size, mines) {
     ev.preventDefault();
     game.restart(size, mines);
     renderBoard(size);
-    renderUI('.life', 0);
-    renderUI('.shown', 0);
-    renderUI('.marked', 0);
+    renderUI('.life', game.lifes);
+    renderUI('.shown', game.shownCount);
+    renderUI('.marked', game.markedCount);
     renderUI('.restart-svg', _getSmileySvg());
 }
 function onHint(game, idx) {
-    let newHintCount = game.getHintsCount();
+    let newHintCount = game.hintCount;
     renderUI(`.hint${idx}`, _getLightBulbActiveSvg());
     if (newHintCount <= 0)
         return;
     newHintCount -= 1;
-    game.setHintCount(newHintCount);
-    game.setIsHint(true);
+    game.hintCount = newHintCount;
+    game.isHint = true;
 }
 function onSafeClick(game) {
-    if (!game.getIsOn())
+    if (!game.isOn)
         return;
     const cell = game.safeClick();
     if (typeof cell === 'string')
         return alert(cell);
-    const { row, col } = cell.getCoords();
+    const { row, col } = cell.coords;
     const elCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
     elCell.classList.add('safe');
-    renderUI('.safe-click-txt', game.getSafeClicks());
+    renderUI('.safe-click-txt', getHintsHtml(game.safeClicks));
 }
 function onManuallyCreate(game) {
-    game.setIsManuallMines(true);
-    game.setPlacedMines(game.getMines());
+    game.isManuallMines = true;
+    game.placedMines = game.mines;
 }
 function onUndo(ev, game) {
     ev.preventDefault();
     game.undo();
-    renderBoard(game.getSize());
-    game.getBoard().board.forEach((row, rowIdx) => row.forEach((cell, colIdx) => {
-        if (cell.getShown())
-            renderCell(cell.getHtmlStr(), { row: rowIdx, col: colIdx });
+    renderBoard(game.size);
+    game.board.board.forEach((row, rowIdx) => row.forEach((cell, colIdx) => {
+        if (cell.isShown)
+            renderCell(cell.htmlStr, { row: rowIdx, col: colIdx });
     }));
-    renderUI('.shown', game.getShowCount());
-    renderUI('.marked', game.getMarkCount());
-    renderUI('.life', game.getLifes());
+    renderUI('.shown', game.shownCount);
+    renderUI('.marked', game.markedCount);
+    renderUI('.life', game.lifes);
 }
 function onToggleDarkMode() {
     var _a;
@@ -237,31 +252,31 @@ function onToggleDarkMode() {
     elBtn.innerText = (elBtn.innerText === 'Dark Mode') ? 'Normal Mode' : 'Dark Mode';
 }
 function onMegaHint(game) {
-    if (!game.getIsOn())
+    if (!game.isOn)
         return;
-    game.setIsMegaHint(true);
+    game.isMegaHint = true;
 }
 //Methods
 function gameStart(game, coords) {
     game.startGame(coords);
-    let lifes = game.getLifes();
+    let lifes = game.lifes;
     renderUI('.life', lifes);
     renderUI('.restart-svg', _getWorriedSmiley());
-    renderUI('.safe-click-txt', game.getSafeClicks());
+    renderUI('.safe-click-txt', getHintsHtml(game.safeClicks));
 }
-function _gameOver(isWin, game) {
+function gameOver(isWin, game) {
     if (isWin) {
         alert('Win');
         renderUI('.restart-svg', _getHappySMileySvg());
     }
     else {
         alert('Lose');
-        _revealMines(game.getBoard());
+        revealMines(game.board);
         renderUI('.restart-svg', _getSadSmileySvg());
     }
     game.gameOver(isWin);
 }
-function _expandShown(coords, game) {
+function expandShown(coords, game) {
     const { row: rowIdx, col: colIdx } = coords;
     const queue = [{ row: rowIdx, col: colIdx }];
     while (queue.length > 0) {
@@ -275,56 +290,71 @@ function _expandShown(coords, game) {
         }
     }
 }
-function _handleRevealNeighbours(coords, game, cell) {
-    const { row, col } = coords;
-    _revealNeighbours(coords, game, cell);
-    setTimeout(_revealNeighbours, 1500, row, col, game, cell, '<span> </span>');
+function handleRevealNeighbours(coords, game, cell) {
+    revealNeighbours(coords, game, cell);
+    setTimeout(revealNeighbours, 1500, coords, game, cell, '<span> </span>');
 }
-function _revealNeighbours(coords, game, cell, htmlStr = '') {
-    renderCell(htmlStr || cell.getHtmlStr(), coords, false, true);
-    const board = game.getBoard();
+function revealNeighbours(coords, game, cell, htmlStr = '') {
+    renderCell(htmlStr || cell.htmlStr, coords, false, true);
+    const board = game.board;
     board.neighborsLoop(coords, (cell, row, col) => {
-        if (cell.getShown())
+        if (cell.isShown)
             return;
-        let HtmlToRender = htmlStr ? htmlStr : cell.getHtmlStr();
+        let HtmlToRender = htmlStr ? htmlStr : cell.htmlStr;
         renderCell(HtmlToRender, { row, col }, false, true);
     });
 }
-function _handleMegaHint(game, cell, coords) {
-    let megaHintCount = game.getMegaHintCount();
+function handleMegaHint(game, cell, coords) {
+    let megaHintCount = game.megaHintsCount;
     if (megaHintCount <= 0) {
         const elHighLights = document.querySelectorAll('.highlight');
-        _renderCells(elHighLights, game);
-        setTimeout(_renderCells, 1500, elHighLights, game, '<span> </span>');
+        renderCells(elHighLights, game, undefined, false, true);
+        setTimeout(renderCells, 1500, elHighLights, game, '<span> </span>', false, true);
         clearMegaHint(game, coords);
         return;
     }
-    const startCoords = cell.getCoords();
+    const startCoords = cell.coords;
     const elCells = document.querySelectorAll('.cell');
-    elCells.forEach((elCell) => elCell.addEventListener('mouseenter', (ev) => _onCellHover(ev, startCoords)));
-    if (megaHintCount > 0)
-        game.setMegaHintCount(0);
-}
-function _renderCells(els, game, htmlStr) {
-    els.forEach(el => {
-        var _a, _b;
-        const row = parseInt((_a = el.getAttribute('data-row')) !== null && _a !== void 0 ? _a : '');
-        const col = parseInt((_b = el.getAttribute('data-col')) !== null && _b !== void 0 ? _b : '');
-        const cell = game.getCellInstance({ row, col });
-        let str = htmlStr ? htmlStr : cell.getHtmlStr();
-        renderCell(str, { row, col });
+    elCells.forEach((elCell) => {
+        EventManager.addEventListener(elCell, 'mouseenter', onCellHover, startCoords);
     });
+    if (megaHintCount > 0)
+        game.megaHintsCount = 0;
 }
-function _onCellHover(ev, coords) {
+const EventManager = (function () {
+    const listeners = new Map();
+    function addEventListener(el, type, handler, ...args) {
+        const wrappedHandler = (ev) => handler(ev, ...args);
+        if (!listeners.has(el)) {
+            listeners.set(el, new Map());
+        }
+        const elementListeners = listeners.get(el);
+        elementListeners.set(type, { originalHandler: handler, wrappedHandler });
+        el.addEventListener(type, wrappedHandler);
+    }
+    function removeEventListener(el, type) {
+        const elementListeners = listeners.get(el);
+        if (elementListeners && elementListeners.has(type)) {
+            const { wrappedHandler } = elementListeners.get(type);
+            el.removeEventListener(type, wrappedHandler);
+            elementListeners.delete(type);
+        }
+    }
+    return {
+        addEventListener,
+        removeEventListener
+    };
+})();
+function onCellHover(ev, coords) {
     var _a, _b;
     const target = ev.target;
     const row = parseInt((_a = target.getAttribute('data-row')) !== null && _a !== void 0 ? _a : '');
     const col = parseInt((_b = target.getAttribute('data-col')) !== null && _b !== void 0 ? _b : '');
     if (isNaN(row) || isNaN(col))
         return;
-    _highlightCells(row, col, coords);
+    highlightCells(row, col, coords);
 }
-function _highlightCells(hoverRow, hoverCol, coords) {
+function highlightCells(hoverRow, hoverCol, coords) {
     const cells = document.querySelectorAll('.cell');
     cells.forEach((cell) => {
         var _a, _b;
@@ -347,25 +377,25 @@ function isCellBetween(startRow, startCol, endRow, endCol, cellRow, cellCol) {
     return cellRow >= minRow && cellRow <= maxRow && cellCol >= minCol && cellCol <= maxCol;
 }
 function clearMegaHint(game, coords) {
-    _removeClasses('.highlight');
+    removeClasses('.highlight');
     const elCells = document.querySelectorAll('.cell');
-    elCells.forEach((elCell) => elCell.removeEventListener('mouseenter', (ev) => _onCellHover(ev, coords)));
-    game.setIsMegaHint(false);
+    elCells.forEach((elCell) => EventManager.removeEventListener(elCell, 'mouseenter'));
+    game.isMegaHint = false;
 }
-function _revealMines(board) {
+function revealMines(board) {
     board.board.forEach((row, rowIdx) => row.forEach((cell, colIdx) => {
-        if (cell.getMine() && !cell.getShown()) {
-            cell.setShown();
-            renderCell(cell.getHtmlStr(), { row: rowIdx, col: colIdx });
+        if (cell.isMine && !cell.isShown) {
+            cell.isShown = true;
+            renderCell(cell.htmlStr, { row: rowIdx, col: colIdx });
         }
     }));
 }
-function _ManuallyPlaceMines(game, coords) {
+function manuallyPlaceMines(game, coords) {
     game.placeMine(coords);
     const elCell = document.querySelector(`[data-row="${coords.row}"][data-col="${coords.col}"]`);
     elCell.classList.add('mine-placed');
 }
-function _getMinesAmount(size) {
+function getMinesAmount(size) {
     let mines;
     switch (size) {
         case 8:
@@ -380,12 +410,12 @@ function _getMinesAmount(size) {
     }
     return mines;
 }
-function _removeClasses(className) {
+function removeClasses(className) {
     const elCells = document.querySelectorAll(className);
     let shortClassName = className.substring(1);
     elCells.forEach(elCell => elCell.classList.remove(shortClassName));
 }
-//SVGS
+//SVGS and Html
 function _getMarkedSvg() {
     return (`<svg  viewBox="0 0 24 24" ><g  stroke-width="0"></g><g stroke-linecap="round" stroke-linejoin="round"></g><g> <path d="M5 21V3.90002C5 3.90002 5.875 3 8.5 3C11.125 3 12.875 4.8 15.5 4.8C18.125 4.8 19 3.9 19 3.9V14.7C19 14.7 18.125 15.6 15.5 15.6C12.875 15.6 11.125 13.8 8.5 13.8C5.875 13.8 5 14.7 5 14.7" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>`);
 }
@@ -431,4 +461,7 @@ function _getLightBulbActiveSvg() {
         </g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
         <g id="SVGRepo_iconCarrier"> <path fill="yellow" d="M10.063 8.5C10.0219 8.34019 10 8.17265 10 8C10 6.89543 10.8954 6 12 6C12.1413 6 12.2792 6.01466 12.4122 6.04253M5 4L3 3M19 4L21 3M4 10H3M21 10H20M5.6 21H18.4C18.9601 21 19.2401 21 19.454 20.891C19.6422 20.7951 19.7951 20.6422 19.891 20.454C20 20.2401 20 19.9601 20 19.4V18.6C20 18.0399 20 17.7599 19.891 17.546C19.7951 17.3578 19.6422 17.2049 19.454 17.109C19.2401 17 18.9601 17 18.4 17H5.6C5.03995 17 4.75992 17 4.54601 17.109C4.35785 17.2049 4.20487 17.3578 4.10899 17.546C4 17.7599 4 18.0399 4 18.6V19.4C4 19.9601 4 20.2401 4.10899 20.454C4.20487 20.6422 4.35785 20.7951 4.54601 20.891C4.75992 21 5.03995 21 5.6 21ZM17 14V8C17 5.23858 14.7614 3 12 3C9.23858 3 7 5.23858 7 8V14H17Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g>
         </svg>`);
+}
+function getHintsHtml(amount) {
+    return (`${amount} Remines`);
 }

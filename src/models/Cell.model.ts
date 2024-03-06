@@ -1,8 +1,10 @@
 export interface CellModel {
-    minesAround: number
-    isShown: boolean
-    isMine: boolean
-    isMarked: boolean
+     _minesAround: number
+    _isShown: boolean
+    _isMine: boolean
+    _isMarked: boolean
+    _htmlStr: string
+    _coords: CoordsModel
 }
 
 export interface CoordsModel {

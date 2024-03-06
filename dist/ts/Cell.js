@@ -1,48 +1,50 @@
 export class Cell {
-    constructor(svg = '', coords, minesAround = 0, isShown = false, isMine = false, isMarked = false) {
-        this.minesAround = minesAround;
-        this.isShown = isShown;
-        this.isMine = isMine;
-        this.isMarked = isMarked;
-        this.htmlStr = svg;
-        this.coords = coords;
+    constructor(htmlStr, coords, minesAround = 0, isShown = false, isMine = false, isMarked = false) {
+        this._minesAround = minesAround;
+        this._isShown = isShown;
+        this._isMine = isMine;
+        this._isMarked = isMarked;
+        this._htmlStr = htmlStr;
+        this._coords = coords;
     }
     clone() {
-        return new Cell(this.htmlStr, this.coords, this.minesAround, this.isShown, this.isMine, this.isMarked);
+        return new Cell(this._htmlStr, this._coords, this._minesAround, this._isShown, this._isMine, this._isMarked);
     }
     //Getters
-    getMine() {
-        return this.isMine;
+    get isMine() {
+        return this._isMine;
     }
-    getShown() {
-        return this.isShown;
+    get isShown() {
+        return this._isShown;
     }
-    getMarked() {
-        return this.isMarked;
+    get isMarked() {
+        return this._isMarked;
     }
-    getMinesAround() {
-        return this.minesAround;
+    get MinesAround() {
+        return this._minesAround;
     }
-    getHtmlStr() {
-        return this.htmlStr;
+    get htmlStr() {
+        return this._htmlStr;
     }
-    getCoords() {
-        return this.coords;
+    get coords() {
+        return this._coords;
     }
     //Setters
-    setMine(isMine) {
-        this.isMine = isMine;
+    set isMine(isMine) {
+        this._isMine = isMine;
     }
-    setMarked() {
-        this.isMarked = !this.isMarked;
+    set isMarked(isMarked) {
+        this._isMarked = isMarked;
     }
-    setShown() {
-        this.isShown = !this.isShown;
+    set isShown(isShown) {
+        this._isShown = isShown;
     }
-    setMinesAround(mines) {
-        this.minesAround = mines;
+    set MinesAround(mines) {
+        if (mines < 0)
+            return;
+        this._minesAround = mines;
     }
-    setHtmlStr(str) {
-        this.htmlStr = str;
+    set htmlStr(str) {
+        this._htmlStr = str;
     }
 }

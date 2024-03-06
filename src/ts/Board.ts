@@ -44,7 +44,7 @@ export class Board {
 
     placeMine(cell: Cell): void {
         cell.isMine = true
-        cell.HtmlStr = this.#getBombSvg()
+        cell.htmlStr = this.#getBombSvg()
     }
 
     countMinesAround(): void {
@@ -64,20 +64,21 @@ export class Board {
                 })
 
                 this._board[row][col].MinesAround = minesAround
-                this._board[row][col].HtmlStr = this.#getNumberCellContent(minesAround)
+                this._board[row][col].htmlStr = this.#getNumberCellContent(minesAround)
 
             }
         }
 
     }
 
-    neighborsLoop(coords: CoordsModel, callback: (cell: Cell, idx?: number, jdx?: number) => void): void {
-        const { row, col } = coords;
+    
+    neighborsLoop(coords: CoordsModel, callback: (cell: Cell, idx: number, jdx: number) => void): void {
+        const { row, col } = coords
 
-        const startRow = Math.max(0, row - 1);
-        const endRow = Math.min(this._board.length - 1, row + 1);
-        const startCol = Math.max(0, col - 1);
-        const endCol = Math.min(this._board[0].length - 1, col + 1);
+        const startRow = Math.max(0, row - 1)
+        const endRow = Math.min(this._board.length - 1, row + 1)
+        const startCol = Math.max(0, col - 1)
+        const endCol = Math.min(this._board[0].length - 1, col + 1)
 
         for (let idx = startRow; idx <= endRow; idx++) {
             for (let jdx = startCol; jdx <= endCol; jdx++) {
@@ -96,10 +97,10 @@ export class Board {
 
         for (let row = 0; row < this._board.length; row++) {
             for (let col = 0; col < this._board.length; col++) {
-                clonedBoard._board[row][col] = this._board[row][col].clone();
+                clonedBoard._board[row][col] = this._board[row][col].clone()
             }
         }
-        return clonedBoard;
+        return clonedBoard
     }
 
     getCell(coords: CoordsModel): Cell {

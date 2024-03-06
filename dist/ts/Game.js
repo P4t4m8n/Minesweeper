@@ -4,189 +4,142 @@ import { Timer } from "./Timer.js";
 import { Util } from "./Util.js";
 export class Game {
     constructor(boardSize = 4, mines = 2) {
-        this.isOn = false;
-        this.isHint = false;
-        this.isMegaHint = false;
-        this.megaHintsCount = 1;
-        this.hintCount = 3;
-        this.shownCount = 0;
-        this.markedCount = 0;
-        this.lifes = 3;
-        this.safeClicks = 3;
-        this.isManuallMines = false;
-        this.placedMines = 0;
-        this.mines = mines;
-        this.size = boardSize;
-        this.board = new Board(boardSize);
+        this._isOn = false;
+        this._isHint = false;
+        this._isMegaHint = false;
+        this._megaHintsCount = 1;
+        this._hintCount = 3;
+        this._shownCount = 0;
+        this._markedCount = 0;
+        this._lifes = 3;
+        this._safeClicks = 3;
+        this._isManuallMines = false;
+        this._placedMines = 0;
+        this.restart(boardSize, mines);
     }
-    startGame(cellCord) {
-        if (!this.isManuallMines)
-            this.board.placeMines(this.mines, cellCord);
-        this.board.countMinesAround();
-        this.time = new Timer();
-        this.setLifes(3);
-        this.setSafeClicks(3);
-        this.setHintCount(3);
-        this.setIsOn(true);
-        this.time.start();
-        this.stack = new Stack();
+    startGame(coords) {
+        if (!this._isManuallMines)
+            this._board.placeMines(this._mines, coords);
+        this._board.countMinesAround();
+        this._time = new Timer();
+        this._isOn = true;
+        this._time.start();
     }
     checkWin() {
-        return this.markedCount + this.shownCount === Math.pow(this.size, 2);
+        return this._markedCount + this._shownCount === Math.pow(this._size, 2);
+    }
+    checkLose() {
+        return this._lifes <= 0;
     }
     gameOver(isWin) {
-        this.time.stop();
+        this._time.stop();
     }
     expandShown(rowIdx, colIdx) {
         let expandedCells = [];
-        this.board.neighborsLoop({ row: rowIdx, col: colIdx }, (cell, i, j) => {
+        this._board.neighborsLoop({ row: rowIdx, col: colIdx }, (cell, i, j) => {
             if (cell.isShown || cell.isMine || cell.isMarked)
                 return expandedCells;
-            this.board.board[i][j].setShown();
-            this.shownCount++;
-            let htmlStr = cell.getHtmlStr();
-            let minesAround = cell.getMinesAround();
+            this._board.board[i][j].isShown = true;
+            this._shownCount++;
+            let htmlStr = cell.htmlStr;
+            let minesAround = cell.MinesAround;
             expandedCells.push({ htmlStr, row: i, col: j, minesAround });
         });
         return expandedCells;
     }
-    restart(boardSize = this.size, mines = this.mines) {
-        this.isOn = false;
-        this.isMegaHint = false;
-        this.shownCount = 0;
-        this.markedCount = 0;
-        this.size = boardSize;
-        this.mines = mines;
-        this.placedMines = 0;
-        this.isManuallMines = false;
-        if (this.time)
-            this.time.stop();
-        this.time = new Timer();
-        this.time.render();
-        this.board = new Board(boardSize);
+    restart(boardSize = this._size, mines = this._mines) {
+        this._isOn = false;
+        this._isMegaHint = false;
+        this._shownCount = 0;
+        this._markedCount = 0;
+        this._size = boardSize;
+        this._mines = mines;
+        this._placedMines = 0;
+        this._isManuallMines = false;
+        this._isHint = false;
+        this._megaHintsCount = 1;
+        this._hintCount = 3;
+        this._lifes = 2;
+        this._safeClicks = 3;
+        this._isManuallMines = false;
+        if (this._time) {
+            this._time.stop();
+            this._time.render();
+        }
+        this._board = new Board(boardSize);
+        this._stack = new Stack();
     }
     safeClick() {
-        if (this.safeClicks <= 0)
-            return 'no more safe clicks';
-        console.log(Math.pow(this.size, 2));
-        if (Math.pow(this.size, 2) - this.shownCount <= +this.mines - (3 - this.lifes))
-            return 'no more free cells';
-        let rndRow = Util.getRandomInt(this.size);
-        let rndCol = Util.getRandomInt(this.size);
-        let cell = this.board.board[rndRow][rndCol];
-        if (cell.getShown() || cell.getMine())
-            return this.safeClick();
-        this.safeClicks = this.safeClicks - 1;
-        return cell;
+        if (this._safeClicks <= 0)
+            return 'No more safe clicks.';
+        const freeCells = Math.pow(this._size, 2) - this._shownCount - (this._mines - (3 - this._lifes));
+        if (freeCells <= 0)
+            return 'No more free cells.';
+        let attempts = 0;
+        let cell;
+        do {
+            let rndRow = Util.getRandomInt(this._size);
+            let rndCol = Util.getRandomInt(this._size);
+            cell = this._board.board[rndRow][rndCol];
+            if (!cell.isShown && !cell.isMine) {
+                this._safeClicks -= 1;
+                return cell;
+            }
+            attempts += 1;
+        } while (attempts < 288);
+        return 'Failed to find a safe cell after multiple attempts.';
     }
     placeMine(coords) {
         const { row, col } = coords;
-        const cell = this.board.board[row][col];
-        this.board.placeMine(cell);
-        this.setPlacedMines(this.placedMines - 1);
+        const cell = this._board.board[row][col];
+        this._board.placeMine(cell);
+        this._placedMines = this._placedMines - 1;
     }
     saveMove() {
-        const gameTemplate = new Game(this.size, this.mines);
-        gameTemplate.setShowCount(this.shownCount);
-        gameTemplate.setMarkedCount(this.markedCount);
-        gameTemplate.setLifes(this.lifes);
-        gameTemplate.setBoard(this.board.clone());
-        // const cloneObj = Util.deepClone(gameTemplate)
-        this.stack.push(gameTemplate);
-        console.log("this.stack:", this.stack);
+        const gameTemplate = new Game(this._size, this._mines);
+        gameTemplate.shownCount = this._shownCount;
+        gameTemplate.markedCount = this._markedCount;
+        gameTemplate.lifes = this._lifes;
+        gameTemplate.board = this._board.clone();
+        this._stack.push(gameTemplate);
     }
     undo() {
-        const savedGame = this.stack.pop();
-        console.log("savedGame:", savedGame);
-        this.shownCount = savedGame.getShowCount();
-        this.markedCount = savedGame.getMarkCount();
-        this.lifes = savedGame.getLifes();
-        this.board = savedGame.getBoard();
-    }
-    //Getters
-    getIsOn() {
-        return this.isOn;
-    }
-    getLifes() {
-        return this.lifes;
+        const savedGame = this._stack.pop();
+        this._shownCount = savedGame.shownCount;
+        this._markedCount = savedGame.markedCount;
+        this._lifes = savedGame.lifes;
+        this._board = savedGame.board;
     }
     getCellInstance(coords) {
-        return this.board.getCell(coords);
+        return this._board.getCell(coords);
     }
-    getShowCount() {
-        return this.shownCount;
-    }
-    getMarkCount() {
-        return this.markedCount;
-    }
-    getMines() {
-        return this.mines;
-    }
-    getBoard() {
-        return this.board;
-    }
-    getSize() {
-        return this.size;
-    }
-    getIsHint() {
-        return this.isHint;
-    }
-    getHintsCount() {
-        return this.hintCount;
-    }
-    getSafeClicks() {
-        return this.safeClicks;
-    }
-    getIsManuallMines() {
-        return this.isManuallMines;
-    }
-    getPlacedMines() {
-        return this.placedMines;
-    }
-    getIsMegaHint() {
-        return this.isMegaHint;
-    }
-    getMegaHintCount() {
-        return this.megaHintsCount;
-    }
+    //Getters
+    get isOn() { return this._isOn; }
+    get lifes() { return this._lifes; }
+    get shownCount() { return this._shownCount; }
+    get markedCount() { return this._markedCount; }
+    get mines() { return this._mines; }
+    get board() { return this._board; }
+    get size() { return this._size; }
+    get isHint() { return this._isHint; }
+    get hintCount() { return this._hintCount; }
+    get safeClicks() { return this._safeClicks; }
+    get isManuallMines() { return this._isManuallMines; }
+    get placedMines() { return this._placedMines; }
+    get isMegaHint() { return this._isMegaHint; }
+    get megaHintsCount() { return this._megaHintsCount; }
     //Setters
-    setIsOn(isOn) {
-        this.isOn = isOn;
-    }
-    setLifes(amount) {
-        this.lifes = amount;
-    }
-    setShowCount(amount) {
-        this.shownCount = amount;
-    }
-    setMarkedCount(amount) {
-        this.markedCount = amount;
-    }
-    setMines(amount) {
-        this.mines = amount;
-    }
-    setBoard(board) {
-        this.board = board;
-    }
-    setHintCount(amount) {
-        this.hintCount = amount;
-    }
-    setIsHint(isHint) {
-        this.isHint = isHint;
-    }
-    setSafeClicks(amount) {
-        this.safeClicks = amount;
-    }
-    setIsManuallMines(isManuallMines) {
-        this.isManuallMines = isManuallMines;
-    }
-    setPlacedMines(amount) {
-        this.placedMines = amount;
-    }
-    setIsMegaHint(isMegaHint) {
-        this.isMegaHint = isMegaHint;
-    }
-    setMegaHintCount(amount) {
-        this.megaHintsCount = amount;
-    }
+    set isOn(isOn) { this._isOn = isOn; }
+    set lifes(amount) { this._lifes = amount; }
+    set shownCount(amount) { this._shownCount = amount; }
+    set markedCount(amount) { this._markedCount = amount; }
+    set mines(amount) { this._mines = amount; }
+    set board(board) { this._board = board; }
+    set hintCount(amount) { this._hintCount = amount; }
+    set isHint(isHint) { this._isHint = isHint; }
+    set safeClicks(amount) { this._safeClicks = amount; }
+    set isManuallMines(isManuallMines) { this._isManuallMines = isManuallMines; }
+    set placedMines(amount) { this._placedMines = amount; }
+    set isMegaHint(isMegaHint) { this._isMegaHint = isMegaHint; }
+    set megaHintsCount(amount) { this._megaHintsCount = amount; }
 }

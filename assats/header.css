@@ -13,6 +13,8 @@
         gap: 1em;
 
         h3 {
+            display: flex;
+            gap: .5em;
 
             span {
                 color: red;
@@ -24,14 +26,13 @@
         font-size: 1.5rem;
         font-family: monospace;
         font-weight: 700;
+        padding-left: 2px;
     }
 
     .control-btns {
         display: flex;
         gap: 1em;
     }
-
-
 
     .focus:focus {
         box-shadow: inset 0px 0.8px 0px -0.25px rgba(255, 255, 255, 0.2), 0px 0.5px 1px rgba(0, 0, 0, 0.1), 0px 0px 0px 3.5px rgba(58, 108, 217, 0.5);
@@ -80,6 +81,15 @@
     display: flex;
     gap: 1em;
     height: 2em;
+
+    .safe-click {
+        display: flex;
+        flex-direction: column;
+
+        .safe-click-txt {
+            align-self: center;
+        }
+    }
 }
 
 @media (max-width:400px) {

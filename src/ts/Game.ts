@@ -6,64 +6,60 @@ import { Timer } from "./Timer.js"
 import { Util } from "./Util.js"
 export class Game {
 
-    private isOn = false
-    private isHint = false
-    private isMegaHint = false
-    private megaHintsCount = 1
-    private hintCount = 3
-    private shownCount = 0
-    private markedCount = 0
-    private mines: number
-    private time!: Timer
-    private lifes = 3
-    private board: Board
-    private size: number
-    private safeClicks = 3
-    private isManuallMines = false
-    private placedMines = 0
-    private stack!: any
+    private _isOn = false
+    private _isHint = false
+    private _isMegaHint = false
+    private _megaHintsCount = 1
+    private _hintCount = 3
+    private _shownCount = 0
+    private _markedCount = 0
+    private _mines!: number
+    private _time!: Timer
+    private _lifes = 3
+    private _board!: Board
+    private _size!: number
+    private _safeClicks = 3
+    private _isManuallMines = false
+    private _placedMines = 0
+    private _stack!: Stack<any>
 
     constructor(boardSize = 4, mines = 2) {
-        this.mines = mines
-        this.size = boardSize
-
-        this.board = new Board(boardSize)
-
+        this.restart(boardSize, mines)
     }
 
-    startGame(cellCord: { row: number, col: number }): void {
+    startGame(coords: CoordsModel): void {
 
-        if (!this.isManuallMines) this.board.placeMines(this.mines, cellCord)
-        this.board.countMinesAround()
-        this.time = new Timer()
+        if (!this._isManuallMines) this._board.placeMines(this._mines, coords)
 
-        this.setLifes(3)
-        this.setSafeClicks(3)
-        this.setHintCount(3)
-        this.setIsOn(true)
-        this.time.start()
-        this.stack = new Stack()
+        this._board.countMinesAround()
+        this._time = new Timer()
 
+        this._isOn = true
+        this._time.start()
     }
 
     checkWin(): boolean {
-        return this.markedCount + this.shownCount === this.size ** 2
+        return this._markedCount + this._shownCount === this._size ** 2
+    }
+
+    checkLose(): boolean {
+        return this._lifes <= 0
     }
 
     gameOver(isWin: boolean) {
-        this.time.stop()
+        this._time.stop()
     }
 
     expandShown(rowIdx: number, colIdx: number): { htmlStr: string, row: number, col: number, minesAround: number }[] {
         let expandedCells: { row: number; col: number; htmlStr: string, minesAround: number }[] = []
 
-        this.board.neighborsLoop({ row: rowIdx, col: colIdx }, (cell, i, j) => {
+        this._board.neighborsLoop({ row: rowIdx, col: colIdx }, (cell, i, j) => {
             if (cell.isShown || cell.isMine || cell.isMarked) return expandedCells
 
-            this.board.board[i][j].setShown();
-            this.shownCount++;
-            let htmlStr = cell.getHtmlStr();
-            let minesAround = cell.getMinesAround()
+            this._board.board[i][j].isShown = true
+            this._shownCount++;
+            let htmlStr = cell.htmlStr
+            let minesAround = cell.MinesAround
 
             expandedCells.push({ htmlStr, row: i, col: j, minesAround })
 
@@ -72,191 +68,144 @@ export class Game {
         return expandedCells
     }
 
-    restart(boardSize = this.size, mines = this.mines) {
+    restart(boardSize = this._size, mines = this._mines) {
 
-        this.isOn = false
-        this.isMegaHint = false
-        this.shownCount = 0
-        this.markedCount = 0
-        this.size = boardSize
-        this.mines = mines
-        this.placedMines = 0
-        this.isManuallMines = false
+        this._isOn = false
+        this._isMegaHint = false
+        this._shownCount = 0
+        this._markedCount = 0
+        this._size = boardSize
+        this._mines = mines
+        this._placedMines = 0
+        this._isManuallMines = false
+        this._isHint = false
+        this._megaHintsCount = 1
+        this._hintCount = 3
+        this._lifes = 2
+        this._safeClicks = 3
+        this._isManuallMines = false
 
-        if (this.time) this.time.stop()
-        this.time = new Timer()
-        this.time.render()
+        if (this._time) {
+            this._time.stop()
+            this._time.render()
+        }
 
-        this.board = new Board(boardSize)
+        this._board = new Board(boardSize)
+        this._stack = new Stack()
 
     }
 
     safeClick(): Cell | string {
+        if (this._safeClicks <= 0) return 'No more safe clicks.'
 
-        if (this.safeClicks <= 0) return 'no more safe clicks'
-        console.log(this.size ** 2)
-        if (this.size ** 2 - this.shownCount <= + this.mines - (3 - this.lifes)) return 'no more free cells'
+        const freeCells = this._size ** 2 - this._shownCount - (this._mines - (3 - this._lifes))
+        if (freeCells <= 0) return 'No more free cells.'
 
-        let rndRow = Util.getRandomInt(this.size)
-        let rndCol = Util.getRandomInt(this.size)
+        let attempts = 0
+        let cell
+        do {
+            let rndRow = Util.getRandomInt(this._size)
+            let rndCol = Util.getRandomInt(this._size)
+            cell = this._board.board[rndRow][rndCol]
 
-        let cell = this.board.board[rndRow][rndCol]
-        if (cell.getShown() || cell.getMine()) return this.safeClick()
+            if (!cell.isShown && !cell.isMine) {
+                this._safeClicks -= 1
+                return cell
+            }
+            attempts += 1
+        } while (attempts < 288)
 
-        this.safeClicks = this.safeClicks - 1
-
-        return cell
-
+        return 'Failed to find a safe cell after multiple attempts.';
     }
 
     placeMine(coords: CoordsModel): void {
         const { row, col } = coords
-        const cell = this.board.board[row][col]
-        this.board.placeMine(cell)
+        const cell = this._board.board[row][col]
+        this._board.placeMine(cell)
 
-        this.setPlacedMines(this.placedMines - 1)
-
+        this._placedMines = this._placedMines - 1
     }
 
     saveMove(): void {
 
-        const gameTemplate = new Game(this.size, this.mines)
+        const gameTemplate = new Game(this._size, this._mines)
 
-        gameTemplate.setShowCount(this.shownCount)
-        gameTemplate.setMarkedCount(this.markedCount)
-        gameTemplate.setLifes(this.lifes)
-        gameTemplate.setBoard(this.board.clone())
+        gameTemplate.shownCount = this._shownCount
+        gameTemplate.markedCount = this._markedCount
+        gameTemplate.lifes = this._lifes
+        gameTemplate.board = this._board.clone()
 
-        // const cloneObj = Util.deepClone(gameTemplate)
-        this.stack.push(gameTemplate)
-
-        console.log("this.stack:", this.stack)
+        this._stack.push(gameTemplate)
     }
 
     undo(): void {
-        const savedGame: Game = this.stack.pop()
-        console.log("savedGame:", savedGame)
-        this.shownCount = savedGame.getShowCount()
-        this.markedCount = savedGame.getMarkCount()
-        this.lifes = savedGame.getLifes()
-        this.board = savedGame.getBoard()
+        const savedGame: Game = this._stack.pop()
 
+        this._shownCount = savedGame.shownCount
+        this._markedCount = savedGame.markedCount
+        this._lifes = savedGame.lifes
+        this._board = savedGame.board
+    }
+
+    getCellInstance(coords: CoordsModel) {
+        return this._board.getCell(coords)
     }
 
     //Getters
 
-    getIsOn(): boolean {
-        return this.isOn
-    }
+    get isOn(): boolean { return this._isOn }
 
-    getLifes(): number {
-        return this.lifes
-    }
+    get lifes(): number { return this._lifes }
 
-    getCellInstance(coords: CoordsModel) {
-        return this.board.getCell(coords)
-    }
+    get shownCount(): number { return this._shownCount }
 
-    getShowCount(): number {
-        return this.shownCount
-    }
+    get markedCount(): number { return this._markedCount }
 
-    getMarkCount(): number {
-        return this.markedCount
-    }
+    get mines(): number { return this._mines }
 
-    getMines(): number {
-        return this.mines
-    }
+    get board(): Board { return this._board }
 
-    getBoard(): Board {
-        return this.board
-    }
+    get size(): number { return this._size }
 
-    getSize(): number {
-        return this.size
-    }
+    get isHint(): boolean { return this._isHint }
 
-    getIsHint(): boolean {
-        return this.isHint
-    }
+    get hintCount(): number { return this._hintCount }
 
-    getHintsCount(): number {
-        return this.hintCount
-    }
+    get safeClicks(): number { return this._safeClicks }
 
-    getSafeClicks(): number {
-        return this.safeClicks
-    }
+    get isManuallMines(): boolean { return this._isManuallMines }
 
-    getIsManuallMines(): boolean {
-        return this.isManuallMines
-    }
+    get placedMines(): number { return this._placedMines }
 
-    getPlacedMines(): number {
-        return this.placedMines
-    }
+    get isMegaHint(): boolean { return this._isMegaHint }
 
-    getIsMegaHint(): boolean {
-        return this.isMegaHint
-    }
-
-    getMegaHintCount(): number {
-        return this.megaHintsCount
-    }
+    get megaHintsCount(): number { return this._megaHintsCount }
 
     //Setters
 
-    setIsOn(isOn: boolean): void {
-        this.isOn = isOn
-    }
+    set isOn(isOn: boolean) { this._isOn = isOn }
 
-    setLifes(amount: number): void {
-        this.lifes = amount
-    }
+    set lifes(amount: number) { this._lifes = amount }
 
-    setShowCount(amount: number): void {
-        this.shownCount = amount
-    }
+    set shownCount(amount: number) { this._shownCount = amount }
 
-    setMarkedCount(amount: number): void {
-        this.markedCount = amount
+    set markedCount(amount: number) { this._markedCount = amount }
 
-    }
+    set mines(amount: number) { this._mines = amount }
 
-    setMines(amount: number): void {
-        this.mines = amount
-    }
+    set board(board: Board) { this._board = board }
 
-    setBoard(board: Board): void {
-        this.board = board
-    }
+    set hintCount(amount: number) { this._hintCount = amount }
 
-    setHintCount(amount: number): void {
-        this.hintCount = amount
-    }
+    set isHint(isHint: boolean) { this._isHint = isHint }
 
-    setIsHint(isHint: boolean): void {
-        this.isHint = isHint
-    }
+    set safeClicks(amount: number) { this._safeClicks = amount }
 
-    setSafeClicks(amount: number) {
-        this.safeClicks = amount
-    }
+    set isManuallMines(isManuallMines: boolean) { this._isManuallMines = isManuallMines }
 
-    setIsManuallMines(isManuallMines: boolean): void {
-        this.isManuallMines = isManuallMines
-    }
+    set placedMines(amount: number) { this._placedMines = amount }
 
-    setPlacedMines(amount: number): void {
-        this.placedMines = amount
-    }
+    set isMegaHint(isMegaHint: boolean) { this._isMegaHint = isMegaHint }
 
-    setIsMegaHint(isMegaHint: boolean): void {
-        this.isMegaHint = isMegaHint
-    }
-
-    setMegaHintCount(amount: number): void {
-        this.megaHintsCount = amount
-    }
+    set megaHintsCount(amount: number) { this._megaHintsCount = amount }
 }
