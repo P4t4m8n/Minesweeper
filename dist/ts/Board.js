@@ -38,45 +38,47 @@ export class Board {
     }
     countMinesAround() {
         let size = this.board.length;
-        for (let i = 0; i < size; i++) {
-            for (let j = 0; j < size; j++) {
-                if (this.board[i][j].getMine())
+        for (let row = 0; row < size; row++) {
+            for (let col = 0; col < size; col++) {
+                if (this.board[row][col].getMine())
                     continue;
                 let minesAround = 0;
-                this.neighborsLoop(i, j, (cell) => {
+                this.neighborsLoop({ row, col }, (cell) => {
                     if (cell.getMine())
                         minesAround++;
                 });
-                this.board[i][j].setMinesAround(minesAround);
-                this.board[i][j].setHtmlStr(__classPrivateFieldGet(this, _Board_instances, "m", _Board_getNumberHtml).call(this, minesAround));
+                this.board[row][col].setMinesAround(minesAround);
+                this.board[row][col].setHtmlStr(__classPrivateFieldGet(this, _Board_instances, "m", _Board_getNumberHtml).call(this, minesAround));
             }
         }
     }
-    neighborsLoop(row, col, callback) {
-        for (let i = row - 1; i <= row + 1; i++) {
-            if (i < 0 || i >= this.board.length)
+    neighborsLoop(coords, callback) {
+        const { row, col } = coords;
+        for (let idx = row - 1; idx <= row + 1; idx++) {
+            if (idx < 0 || idx >= this.board.length)
                 continue;
-            for (let j = col - 1; j <= col + 1; j++) {
-                if (i === row && j === col)
+            for (let jdx = col - 1; jdx <= col + 1; jdx++) {
+                if (idx === row && jdx === col)
                     continue;
-                if (j < 0 || j >= this.board[i].length)
+                if (jdx < 0 || jdx >= this.board[idx].length)
                     continue;
-                const cell = this.board[i][j];
-                callback(cell, i, j);
+                const cell = this.board[idx][jdx];
+                callback(cell, idx, jdx);
             }
         }
     }
     clone() {
         const clonedBoard = new Board(this.board.length);
-        for (let i = 0; i < this.board.length; i++) {
-            for (let j = 0; j < this.board.length; j++) {
-                clonedBoard.board[i][j] = this.board[i][j].clone();
+        for (let row = 0; row < this.board.length; row++) {
+            for (let col = 0; col < this.board.length; col++) {
+                clonedBoard.board[row][col] = this.board[row][col].clone();
             }
         }
         return clonedBoard;
     }
     //Getters
-    getCell(row, col) {
+    getCell(coords) {
+        const { row, col } = coords;
         return this.board[row][col];
     }
 }

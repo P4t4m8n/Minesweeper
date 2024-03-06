@@ -8,6 +8,8 @@ export class Game {
 
     private isOn = false
     private isHint = false
+    private isMegaHint = false
+    private megaHintsCount = 1
     private hintCount = 3
     private shownCount = 0
     private markedCount = 0
@@ -55,7 +57,7 @@ export class Game {
     expandShown(rowIdx: number, colIdx: number): { htmlStr: string, row: number, col: number, minesAround: number }[] {
         let expandedCells: { row: number; col: number; htmlStr: string, minesAround: number }[] = []
 
-        this.board.neighborsLoop(rowIdx, colIdx, (cell, i, j) => {
+        this.board.neighborsLoop({ row: rowIdx, col: colIdx }, (cell, i, j) => {
             if (cell.isShown || cell.isMine || cell.isMarked) return expandedCells
 
             this.board.board[i][j].setShown();
@@ -73,6 +75,7 @@ export class Game {
     restart(boardSize = this.size, mines = this.mines) {
 
         this.isOn = false
+        this.isMegaHint = false
         this.shownCount = 0
         this.markedCount = 0
         this.size = boardSize
@@ -80,7 +83,7 @@ export class Game {
         this.placedMines = 0
         this.isManuallMines = false
 
-        this.time.stop()
+        if (this.time) this.time.stop()
         this.time = new Timer()
         this.time.render()
 
@@ -137,7 +140,7 @@ export class Game {
         this.markedCount = savedGame.getMarkCount()
         this.lifes = savedGame.getLifes()
         this.board = savedGame.getBoard()
-    
+
     }
 
     //Getters
@@ -150,8 +153,8 @@ export class Game {
         return this.lifes
     }
 
-    getCellInstance(row: number, col: number) {
-        return this.board.getCell(row, col)
+    getCellInstance(coords: CoordsModel) {
+        return this.board.getCell(coords)
     }
 
     getShowCount(): number {
@@ -194,6 +197,13 @@ export class Game {
         return this.placedMines
     }
 
+    getIsMegaHint(): boolean {
+        return this.isMegaHint
+    }
+
+    getMegaHintCount(): number {
+        return this.megaHintsCount
+    }
 
     //Setters
 
@@ -240,5 +250,13 @@ export class Game {
 
     setPlacedMines(amount: number): void {
         this.placedMines = amount
+    }
+
+    setIsMegaHint(isMegaHint: boolean): void {
+        this.isMegaHint = isMegaHint
+    }
+
+    setMegaHintCount(amount: number): void {
+        this.megaHintsCount = amount
     }
 }

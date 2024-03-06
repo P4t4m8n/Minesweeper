@@ -6,6 +6,8 @@ export class Game {
     constructor(boardSize = 4, mines = 2) {
         this.isOn = false;
         this.isHint = false;
+        this.isMegaHint = false;
+        this.megaHintsCount = 1;
         this.hintCount = 3;
         this.shownCount = 0;
         this.markedCount = 0;
@@ -37,7 +39,7 @@ export class Game {
     }
     expandShown(rowIdx, colIdx) {
         let expandedCells = [];
-        this.board.neighborsLoop(rowIdx, colIdx, (cell, i, j) => {
+        this.board.neighborsLoop({ row: rowIdx, col: colIdx }, (cell, i, j) => {
             if (cell.isShown || cell.isMine || cell.isMarked)
                 return expandedCells;
             this.board.board[i][j].setShown();
@@ -50,13 +52,15 @@ export class Game {
     }
     restart(boardSize = this.size, mines = this.mines) {
         this.isOn = false;
+        this.isMegaHint = false;
         this.shownCount = 0;
         this.markedCount = 0;
         this.size = boardSize;
         this.mines = mines;
         this.placedMines = 0;
         this.isManuallMines = false;
-        this.time.stop();
+        if (this.time)
+            this.time.stop();
         this.time = new Timer();
         this.time.render();
         this.board = new Board(boardSize);
@@ -106,8 +110,8 @@ export class Game {
     getLifes() {
         return this.lifes;
     }
-    getCellInstance(row, col) {
-        return this.board.getCell(row, col);
+    getCellInstance(coords) {
+        return this.board.getCell(coords);
     }
     getShowCount() {
         return this.shownCount;
@@ -138,6 +142,12 @@ export class Game {
     }
     getPlacedMines() {
         return this.placedMines;
+    }
+    getIsMegaHint() {
+        return this.isMegaHint;
+    }
+    getMegaHintCount() {
+        return this.megaHintsCount;
     }
     //Setters
     setIsOn(isOn) {
@@ -172,5 +182,11 @@ export class Game {
     }
     setPlacedMines(amount) {
         this.placedMines = amount;
+    }
+    setIsMegaHint(isMegaHint) {
+        this.isMegaHint = isMegaHint;
+    }
+    setMegaHintCount(amount) {
+        this.megaHintsCount = amount;
     }
 }

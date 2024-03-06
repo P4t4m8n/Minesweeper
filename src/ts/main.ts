@@ -11,7 +11,7 @@ function onInit(): void {
     let game = new Game()
     renderBoard(4)
     handleEventListeners(game)
-
+    renderHints()
 }
 
 function handleEventListeners(game: Game): void {
@@ -32,7 +32,7 @@ function handleEventListeners(game: Game): void {
         elBoard.addEventListener('contextmenu', (ev) => onContextClick(ev, game))
     }
 
-    const elHints = document.querySelector('.hints') as HTMLDivElement
+    const elHints = document.querySelector('.hint-con') as HTMLDivElement
     const elHintsBtns = elHints.querySelectorAll('button')
     elHintsBtns.forEach((button, idx) => button.addEventListener('click', () => onHint(game, idx)))
 
@@ -47,6 +47,9 @@ function handleEventListeners(game: Game): void {
 
     const elDarkBtn = document.querySelector('.toggle-dark')
     elDarkBtn?.addEventListener('click', onToggleDarkMode)
+
+    const elMegaHintBtn = document.querySelector('.mega-hint')
+    elMegaHintBtn?.addEventListener('click', () => onMegaHint(game))
 
 }
 
@@ -70,7 +73,9 @@ function renderBoard(size: number): void {
     }
 }
 
-function renderCell(renderType: string, row: number, col: number, isContext = false, isHint = false) {
+function renderCell(renderType: string, coords: CoordsModel, isContext = false, isHint = false) {
+
+    const { row, col } = coords
 
     const elCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`) as HTMLDivElement
     if (!elCell) {
@@ -96,7 +101,7 @@ function renderCell(renderType: string, row: number, col: number, isContext = fa
 }
 
 function renderHints(): void {
-    const elHints = document.querySelector('.hints') as HTMLDivElement
+    const elHints = document.querySelector('.hint-con') as HTMLDivElement
     if (!elHints) return
 
     const svgChildren = elHints.querySelectorAll('button')
@@ -121,7 +126,6 @@ function renderUI(selector: string, value: number | string): void {
 //EVENTS
 function onCellClick(ev: Event, game: Game): void {
 
-    console.log('click')
     ev.preventDefault()
     ev.stopPropagation()
 
@@ -133,12 +137,12 @@ function onCellClick(ev: Event, game: Game): void {
 
     if (!rowStr || !colStr) return
 
-
     const row = parseInt(rowStr)
     const col = parseInt(colStr)
+    const coords = { row, col }
 
     if (game.getIsManuallMines() && game.getPlacedMines() > 0) {
-        return _ManuallyPlaceMines(game, { row, col })
+        return _ManuallyPlaceMines(game, coords)
     }
 
     if (game.getPlacedMines() === 0) {
@@ -146,16 +150,21 @@ function onCellClick(ev: Event, game: Game): void {
     }
 
     if (!game.getIsOn()) {
-        gameStart(game, { row, col })
+        gameStart(game, coords)
     }
 
-    const cell = game.getCellInstance(row, col)
+    const cell = game.getCellInstance(coords)
 
     if (cell.getShown() || cell.getMarked()) return
 
     if (game.getIsHint()) {
-        _handleRevealNeighbours(row, col, game, cell)
+        _handleRevealNeighbours(coords, game, cell)
         game.setIsHint(false)
+        return
+    }
+
+    if (game.getIsMegaHint()) {
+        _handleMegaHint(game, cell, coords)
         return
     }
     game.saveMove()
@@ -176,11 +185,11 @@ function onCellClick(ev: Event, game: Game): void {
     }
 
     else {
-        _expandShown(row, col, game)
+        _expandShown(coords, game)
         showCount = game.getShowCount()
     }
 
-    renderCell(cell.getHtmlStr(), row, col)
+    renderCell(cell.getHtmlStr(), coords)
 
     renderUI('.shown', showCount)
 
@@ -210,8 +219,9 @@ function onContextClick(ev: Event, game: Game) {
 
     const row = parseInt(rowStr)
     const col = parseInt(colStr)
+    const coords = { row, col }
 
-    const cell = game.getCellInstance(row, col)
+    const cell = game.getCellInstance(coords)
 
     if (cell.getShown()) return
 
@@ -230,7 +240,7 @@ function onContextClick(ev: Event, game: Game) {
     }
 
     cell.setMarked()
-    renderCell(renderType, row, col, true)
+    renderCell(renderType, coords, true)
     renderUI('.marked', markedCount)
 
     let isWin = game.checkWin()
@@ -299,8 +309,7 @@ function onUndo(ev: Event, game: Game): void {
     renderBoard(game.getSize())
 
     game.getBoard().board.forEach((row, rowIdx) => row.forEach((cell, colIdx) => {
-        console.log("cell:", cell)
-        if (cell.getShown()) renderCell(cell.getHtmlStr(), rowIdx, colIdx)
+        if (cell.getShown()) renderCell(cell.getHtmlStr(), { row: rowIdx, col: colIdx })
     }))
 
     renderUI('.shown', game.getShowCount())
@@ -317,6 +326,11 @@ function onToggleDarkMode(): void {
     elBtn.innerText = (elBtn.innerText === 'Dark Mode') ? 'Normal Mode' : 'Dark Mode'
 }
 
+function onMegaHint(game: Game): void {
+    if (!game.getIsOn()) return
+    game.setIsMegaHint(true)
+}
+
 //Methods
 
 function gameStart(game: Game, coords: { row: number, col: number }): void {
@@ -326,7 +340,6 @@ function gameStart(game: Game, coords: { row: number, col: number }): void {
     renderUI('.life', lifes)
     renderUI('.restart-svg', _getWorriedSmiley())
     renderUI('.safe-click-txt', game.getSafeClicks())
-    renderHints()
 }
 
 function _gameOver(isWin: boolean, game: Game) {
@@ -342,7 +355,9 @@ function _gameOver(isWin: boolean, game: Game) {
     game.gameOver(isWin)
 }
 
-function _expandShown(rowIdx: number, colIdx: number, game: Game): void {
+function _expandShown(coords: CoordsModel, game: Game): void {
+    const { row: rowIdx, col: colIdx } = coords
+
     const queue = [{ row: rowIdx, col: colIdx }]
 
     while (queue.length > 0) {
@@ -350,7 +365,7 @@ function _expandShown(rowIdx: number, colIdx: number, game: Game): void {
         const expandedCells = game.expandShown(row, col)
 
         for (const { htmlStr, row: newRow, col: newCol, minesAround } of expandedCells) {
-            renderCell(htmlStr, newRow, newCol)
+            renderCell(htmlStr, { row: newRow, col: newCol })
 
             if (minesAround === 0) {
                 queue.push({ row: newRow, col: newCol })
@@ -359,23 +374,105 @@ function _expandShown(rowIdx: number, colIdx: number, game: Game): void {
     }
 }
 
-function _handleRevealNeighbours(row: number, col: number, game: Game, cell: Cell): void {
-
-    _revealNeighbours(row, col, game, cell)
+function _handleRevealNeighbours(coords: CoordsModel, game: Game, cell: Cell): void {
+    const { row, col } = coords
+    _revealNeighbours(coords, game, cell)
     setTimeout(_revealNeighbours, 1500, row, col, game, cell, '<span> </span>')
 
 }
 
-function _revealNeighbours(row: number, col: number, game: Game, cell: Cell, htmlStr = ''): void {
+function _revealNeighbours(coords: CoordsModel, game: Game, cell: Cell, htmlStr = ''): void {
 
-    renderCell(htmlStr || cell.getHtmlStr(), row, col, false, true)
+    renderCell(htmlStr || cell.getHtmlStr(), coords, false, true)
 
     const board = game.getBoard()
-    board.neighborsLoop(row, col, (cell, i, j) => {
+    board.neighborsLoop(coords, (cell, row, col) => {
         if (cell.getShown()) return
         let HtmlToRender = htmlStr ? htmlStr : cell.getHtmlStr()
-        renderCell(HtmlToRender, i, j, false, true)
+        renderCell(HtmlToRender, { row, col }, false, true)
     })
+
+}
+
+function _handleMegaHint(game: Game, cell: Cell, coords: CoordsModel): void {
+
+    let megaHintCount = game.getMegaHintCount()
+
+    if (megaHintCount <= 0) {
+        const elHighLights = document.querySelectorAll('.highlight')
+        _renderCells(elHighLights, game)
+        setTimeout(_renderCells, 1500, elHighLights, game, '<span> </span>')
+        clearMegaHint(game, coords)
+        return
+    }
+
+    const startCoords = cell.getCoords()
+
+    const elCells = document.querySelectorAll('.cell');
+    elCells.forEach((elCell) => elCell.addEventListener('mouseenter', (ev) => _onCellHover(ev, startCoords)))
+
+    if (megaHintCount > 0) game.setMegaHintCount(0)
+
+}
+
+function _renderCells(els: NodeListOf<Element>, game: Game, htmlStr?: string | undefined): void {
+
+    els.forEach(el => {
+        const row = parseInt(el.getAttribute('data-row') ?? '')
+        const col = parseInt(el.getAttribute('data-col') ?? '')
+        const cell = game.getCellInstance({ row, col })
+
+        let str = htmlStr ? htmlStr : cell.getHtmlStr()
+        renderCell(str, { row, col })
+    })
+}
+
+function _onCellHover(ev: Event, coords: CoordsModel) {
+
+    const target = ev.target as HTMLElement;
+    const row = parseInt(target.getAttribute('data-row') ?? '')
+    const col = parseInt(target.getAttribute('data-col') ?? '')
+
+    if (isNaN(row) || isNaN(col)) return;
+
+    _highlightCells(row, col, coords);
+}
+
+function _highlightCells(hoverRow: number, hoverCol: number, coords: CoordsModel) {
+
+    const cells = document.querySelectorAll('.cell')
+    cells.forEach((cell) => {
+        const row = parseInt(cell.getAttribute('data-row') ?? '')
+        const col = parseInt(cell.getAttribute('data-col') ?? '')
+
+        const isBetween = isCellBetween(coords.row, coords.col, hoverRow, hoverCol, row, col);
+
+        if (isBetween) {
+            cell.classList.add('highlight')
+        } else {
+            cell.classList.remove('highlight')
+        }
+    })
+}
+
+function isCellBetween(startRow: number, startCol: number, endRow: number, endCol: number, cellRow: number, cellCol: number): boolean {
+
+    const minRow = Math.min(startRow, endRow)
+    const maxRow = Math.max(startRow, endRow)
+    const minCol = Math.min(startCol, endCol)
+    const maxCol = Math.max(startCol, endCol)
+
+    return cellRow >= minRow && cellRow <= maxRow && cellCol >= minCol && cellCol <= maxCol
+}
+
+function clearMegaHint(game: Game, coords: CoordsModel) {
+
+    _removeClasses('.highlight')
+
+    const elCells = document.querySelectorAll('.cell')
+    elCells.forEach((elCell) => elCell.removeEventListener('mouseenter', (ev) => _onCellHover(ev, coords)))
+
+    game.setIsMegaHint(false)
 
 }
 
@@ -384,7 +481,7 @@ function _revealMines(board: Board): void {
         row.forEach((cell, colIdx) => {
             if (cell.getMine() && !cell.getShown()) {
                 cell.setShown()
-                renderCell(cell.getHtmlStr(), rowIdx, colIdx)
+                renderCell(cell.getHtmlStr(), { row: rowIdx, col: colIdx })
             }
         }))
 

@@ -4,6 +4,7 @@ function onInit() {
     let game = new Game();
     renderBoard(4);
     handleEventListeners(game);
+    renderHints();
 }
 function handleEventListeners(game) {
     const elRestartBtn = document.querySelector('.restart');
@@ -18,7 +19,7 @@ function handleEventListeners(game) {
         elBoard.addEventListener('click', (ev) => onCellClick(ev, game));
         elBoard.addEventListener('contextmenu', (ev) => onContextClick(ev, game));
     }
-    const elHints = document.querySelector('.hints');
+    const elHints = document.querySelector('.hint-con');
     const elHintsBtns = elHints.querySelectorAll('button');
     elHintsBtns.forEach((button, idx) => button.addEventListener('click', () => onHint(game, idx)));
     const elSafeClickBtn = document.querySelector('.safe-click button');
@@ -29,6 +30,8 @@ function handleEventListeners(game) {
     elUndoBtn === null || elUndoBtn === void 0 ? void 0 : elUndoBtn.addEventListener('click', (ev) => onUndo(ev, game));
     const elDarkBtn = document.querySelector('.toggle-dark');
     elDarkBtn === null || elDarkBtn === void 0 ? void 0 : elDarkBtn.addEventListener('click', onToggleDarkMode);
+    const elMegaHintBtn = document.querySelector('.mega-hint');
+    elMegaHintBtn === null || elMegaHintBtn === void 0 ? void 0 : elMegaHintBtn.addEventListener('click', () => onMegaHint(game));
 }
 //RENDERS
 function renderBoard(size) {
@@ -42,7 +45,8 @@ function renderBoard(size) {
         elBoard.innerHTML = strHtml.flat().join("");
     }
 }
-function renderCell(renderType, row, col, isContext = false, isHint = false) {
+function renderCell(renderType, coords, isContext = false, isHint = false) {
+    const { row, col } = coords;
     const elCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
     if (!elCell) {
         console.error(`Cell not found for row ${row}, col ${col}`);
@@ -61,7 +65,7 @@ function renderCell(renderType, row, col, isContext = false, isHint = false) {
     elSpan.innerHTML = renderType;
 }
 function renderHints() {
-    const elHints = document.querySelector('.hints');
+    const elHints = document.querySelector('.hint-con');
     if (!elHints)
         return;
     const svgChildren = elHints.querySelectorAll('button');
@@ -81,7 +85,6 @@ function renderUI(selector, value) {
 }
 //EVENTS
 function onCellClick(ev, game) {
-    console.log('click');
     ev.preventDefault();
     ev.stopPropagation();
     const target = ev.target;
@@ -93,21 +96,26 @@ function onCellClick(ev, game) {
         return;
     const row = parseInt(rowStr);
     const col = parseInt(colStr);
+    const coords = { row, col };
     if (game.getIsManuallMines() && game.getPlacedMines() > 0) {
-        return _ManuallyPlaceMines(game, { row, col });
+        return _ManuallyPlaceMines(game, coords);
     }
     if (game.getPlacedMines() === 0) {
         _removeClasses('.mine-placed');
     }
     if (!game.getIsOn()) {
-        gameStart(game, { row, col });
+        gameStart(game, coords);
     }
-    const cell = game.getCellInstance(row, col);
+    const cell = game.getCellInstance(coords);
     if (cell.getShown() || cell.getMarked())
         return;
     if (game.getIsHint()) {
-        _handleRevealNeighbours(row, col, game, cell);
+        _handleRevealNeighbours(coords, game, cell);
         game.setIsHint(false);
+        return;
+    }
+    if (game.getIsMegaHint()) {
+        _handleMegaHint(game, cell, coords);
         return;
     }
     game.saveMove();
@@ -123,10 +131,10 @@ function onCellClick(ev, game) {
         game.setShowCount(showCount);
     }
     else {
-        _expandShown(row, col, game);
+        _expandShown(coords, game);
         showCount = game.getShowCount();
     }
-    renderCell(cell.getHtmlStr(), row, col);
+    renderCell(cell.getHtmlStr(), coords);
     renderUI('.shown', showCount);
     let isWin = game.checkWin();
     if (isWin)
@@ -149,7 +157,8 @@ function onContextClick(ev, game) {
         return;
     const row = parseInt(rowStr);
     const col = parseInt(colStr);
-    const cell = game.getCellInstance(row, col);
+    const coords = { row, col };
+    const cell = game.getCellInstance(coords);
     if (cell.getShown())
         return;
     const isMarked = cell.getMarked();
@@ -164,7 +173,7 @@ function onContextClick(ev, game) {
         renderType = _getMarkedSvg();
     }
     cell.setMarked();
-    renderCell(renderType, row, col, true);
+    renderCell(renderType, coords, true);
     renderUI('.marked', markedCount);
     let isWin = game.checkWin();
     if (isWin)
@@ -214,9 +223,8 @@ function onUndo(ev, game) {
     game.undo();
     renderBoard(game.getSize());
     game.getBoard().board.forEach((row, rowIdx) => row.forEach((cell, colIdx) => {
-        console.log("cell:", cell);
         if (cell.getShown())
-            renderCell(cell.getHtmlStr(), rowIdx, colIdx);
+            renderCell(cell.getHtmlStr(), { row: rowIdx, col: colIdx });
     }));
     renderUI('.shown', game.getShowCount());
     renderUI('.marked', game.getMarkCount());
@@ -228,6 +236,11 @@ function onToggleDarkMode() {
     const elBtn = document.querySelector('.toggle-dark');
     elBtn.innerText = (elBtn.innerText === 'Dark Mode') ? 'Normal Mode' : 'Dark Mode';
 }
+function onMegaHint(game) {
+    if (!game.getIsOn())
+        return;
+    game.setIsMegaHint(true);
+}
 //Methods
 function gameStart(game, coords) {
     game.startGame(coords);
@@ -235,7 +248,6 @@ function gameStart(game, coords) {
     renderUI('.life', lifes);
     renderUI('.restart-svg', _getWorriedSmiley());
     renderUI('.safe-click-txt', game.getSafeClicks());
-    renderHints();
 }
 function _gameOver(isWin, game) {
     if (isWin) {
@@ -249,38 +261,102 @@ function _gameOver(isWin, game) {
     }
     game.gameOver(isWin);
 }
-function _expandShown(rowIdx, colIdx, game) {
+function _expandShown(coords, game) {
+    const { row: rowIdx, col: colIdx } = coords;
     const queue = [{ row: rowIdx, col: colIdx }];
     while (queue.length > 0) {
         const { row, col } = queue.shift();
         const expandedCells = game.expandShown(row, col);
         for (const { htmlStr, row: newRow, col: newCol, minesAround } of expandedCells) {
-            renderCell(htmlStr, newRow, newCol);
+            renderCell(htmlStr, { row: newRow, col: newCol });
             if (minesAround === 0) {
                 queue.push({ row: newRow, col: newCol });
             }
         }
     }
 }
-function _handleRevealNeighbours(row, col, game, cell) {
-    _revealNeighbours(row, col, game, cell);
+function _handleRevealNeighbours(coords, game, cell) {
+    const { row, col } = coords;
+    _revealNeighbours(coords, game, cell);
     setTimeout(_revealNeighbours, 1500, row, col, game, cell, '<span> </span>');
 }
-function _revealNeighbours(row, col, game, cell, htmlStr = '') {
-    renderCell(htmlStr || cell.getHtmlStr(), row, col, false, true);
+function _revealNeighbours(coords, game, cell, htmlStr = '') {
+    renderCell(htmlStr || cell.getHtmlStr(), coords, false, true);
     const board = game.getBoard();
-    board.neighborsLoop(row, col, (cell, i, j) => {
+    board.neighborsLoop(coords, (cell, row, col) => {
         if (cell.getShown())
             return;
         let HtmlToRender = htmlStr ? htmlStr : cell.getHtmlStr();
-        renderCell(HtmlToRender, i, j, false, true);
+        renderCell(HtmlToRender, { row, col }, false, true);
     });
+}
+function _handleMegaHint(game, cell, coords) {
+    let megaHintCount = game.getMegaHintCount();
+    if (megaHintCount <= 0) {
+        const elHighLights = document.querySelectorAll('.highlight');
+        _renderCells(elHighLights, game);
+        setTimeout(_renderCells, 1500, elHighLights, game, '<span> </span>');
+        clearMegaHint(game, coords);
+        return;
+    }
+    const startCoords = cell.getCoords();
+    const elCells = document.querySelectorAll('.cell');
+    elCells.forEach((elCell) => elCell.addEventListener('mouseenter', (ev) => _onCellHover(ev, startCoords)));
+    if (megaHintCount > 0)
+        game.setMegaHintCount(0);
+}
+function _renderCells(els, game, htmlStr) {
+    els.forEach(el => {
+        var _a, _b;
+        const row = parseInt((_a = el.getAttribute('data-row')) !== null && _a !== void 0 ? _a : '');
+        const col = parseInt((_b = el.getAttribute('data-col')) !== null && _b !== void 0 ? _b : '');
+        const cell = game.getCellInstance({ row, col });
+        let str = htmlStr ? htmlStr : cell.getHtmlStr();
+        renderCell(str, { row, col });
+    });
+}
+function _onCellHover(ev, coords) {
+    var _a, _b;
+    const target = ev.target;
+    const row = parseInt((_a = target.getAttribute('data-row')) !== null && _a !== void 0 ? _a : '');
+    const col = parseInt((_b = target.getAttribute('data-col')) !== null && _b !== void 0 ? _b : '');
+    if (isNaN(row) || isNaN(col))
+        return;
+    _highlightCells(row, col, coords);
+}
+function _highlightCells(hoverRow, hoverCol, coords) {
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach((cell) => {
+        var _a, _b;
+        const row = parseInt((_a = cell.getAttribute('data-row')) !== null && _a !== void 0 ? _a : '');
+        const col = parseInt((_b = cell.getAttribute('data-col')) !== null && _b !== void 0 ? _b : '');
+        const isBetween = isCellBetween(coords.row, coords.col, hoverRow, hoverCol, row, col);
+        if (isBetween) {
+            cell.classList.add('highlight');
+        }
+        else {
+            cell.classList.remove('highlight');
+        }
+    });
+}
+function isCellBetween(startRow, startCol, endRow, endCol, cellRow, cellCol) {
+    const minRow = Math.min(startRow, endRow);
+    const maxRow = Math.max(startRow, endRow);
+    const minCol = Math.min(startCol, endCol);
+    const maxCol = Math.max(startCol, endCol);
+    return cellRow >= minRow && cellRow <= maxRow && cellCol >= minCol && cellCol <= maxCol;
+}
+function clearMegaHint(game, coords) {
+    _removeClasses('.highlight');
+    const elCells = document.querySelectorAll('.cell');
+    elCells.forEach((elCell) => elCell.removeEventListener('mouseenter', (ev) => _onCellHover(ev, coords)));
+    game.setIsMegaHint(false);
 }
 function _revealMines(board) {
     board.board.forEach((row, rowIdx) => row.forEach((cell, colIdx) => {
         if (cell.getMine() && !cell.getShown()) {
             cell.setShown();
-            renderCell(cell.getHtmlStr(), rowIdx, colIdx);
+            renderCell(cell.getHtmlStr(), { row: rowIdx, col: colIdx });
         }
     }));
 }
