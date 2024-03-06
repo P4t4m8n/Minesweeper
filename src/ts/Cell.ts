@@ -1,72 +1,72 @@
-import { CellModel, CoordsModel } from "../models/Cell.model"
+import { CoordsModel } from "../models/Cell.model"
+export class Cell {
 
-export class Cell implements CellModel {
+    private _minesAround: number
+    private _isShown: boolean
+    private _isMine: boolean
+    private _isMarked: boolean
+    private _htmlStr: string
+    readonly _coords: CoordsModel
 
-    minesAround: number
-    isShown: boolean
-    isMine: boolean
-    isMarked: boolean
-    htmlStr: string
-    coords: CoordsModel
-
-    constructor(svg = '', coords: CoordsModel, minesAround = 0, isShown = false, isMine = false, isMarked = false) {
-        this.minesAround = minesAround
-        this.isShown = isShown
-        this.isMine = isMine
-        this.isMarked = isMarked
-        this.htmlStr = svg
-        this.coords = coords
+    constructor(htmlStr: string, coords: CoordsModel, minesAround = 0, isShown = false, isMine = false, isMarked = false) {
+        this._minesAround = minesAround
+        this._isShown = isShown
+        this._isMine = isMine
+        this._isMarked = isMarked
+        this._htmlStr = htmlStr
+        this._coords = coords
     }
 
     clone(): Cell {
-        return new Cell(this.htmlStr, this.coords, this.minesAround, this.isShown, this.isMine, this.isMarked)
+        return new Cell(this._htmlStr, this._coords, this._minesAround, this._isShown, this._isMine, this._isMarked)
     }
-
-
 
     //Getters
 
-    getMine(): boolean {
-        return this.isMine
-    }
-    getShown(): boolean {
-        return this.isShown
-    }
-    getMarked(): boolean {
-        return this.isMarked
-    }
-    getMinesAround(): number {
-        return this.minesAround
+    get isMine(): boolean {
+        return this._isMine
     }
 
-    getHtmlStr(): string {
-        return this.htmlStr
+    get isShown(): boolean {
+        return this._isShown
     }
 
-    getCoords(): CoordsModel {
-        return this.coords
+    get isMarked(): boolean {
+        return this._isMarked
     }
 
+    get MinesAround(): number {
+        return this._minesAround
+    }
+
+    get HtmlStr(): string {
+        return this._htmlStr
+    }
+
+    get Coords(): CoordsModel {
+        return this._coords
+    }
 
     //Setters
 
-    setMine(isMine: boolean): void {
-        this.isMine = isMine
+    set isMine(isMine: boolean) {
+        this._isMine = isMine
     }
 
-    setMarked(): void {
-        this.isMarked = !this.isMarked
+    set isMarked(isMarked: boolean) {
+        this._isMarked = isMarked
     }
 
-    setShown(): void {
-        this.isShown = !this.isShown
+    set isShown(isShown: boolean) {
+        this._isShown = isShown
     }
 
-    setMinesAround(mines: number): void {
-        this.minesAround = mines
+    set MinesAround(mines: number) {
+        if (mines < 0) return
+        this._minesAround = mines
     }
 
-    setHtmlStr(str: string): void {
-        this.htmlStr = str
+    set HtmlStr(str: string) {
+        this._htmlStr = str
     }
 }
