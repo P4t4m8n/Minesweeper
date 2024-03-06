@@ -1,18 +1,18 @@
 
 export class Timer {
-    startTime: number
-    elapsedTime: number
-    running: boolean
+    private startTime: number
+    private _elapsedTime: number
+    private running: boolean
 
     constructor() {
         this.startTime = 0
-        this.elapsedTime = 0
+        this._elapsedTime = 0
         this.running = false
     }
 
     start(): void {
         if (!this.running) {
-            this.startTime = performance.now() - this.elapsedTime
+            this.startTime = performance.now() - this._elapsedTime
             this.running = true
             requestAnimationFrame(this.step.bind(this))
         }
@@ -20,7 +20,7 @@ export class Timer {
 
     step(timestamp: number): void {
         if (this.running) {
-            this.elapsedTime = timestamp - this.startTime
+            this._elapsedTime = timestamp - this.startTime
             this.render()
             requestAnimationFrame(this.step.bind(this))
         }
@@ -40,14 +40,20 @@ export class Timer {
     }
 
     getTime(): string {
-        let minutes = Math.floor(this.elapsedTime / 60000)
-        let seconds = ((this.elapsedTime % 60000) / 1000).toFixed(2)
+        let minutes = Math.floor(this._elapsedTime / 60000)
+        let seconds = ((this._elapsedTime % 60000) / 1000).toFixed(2)
 
         let minutesStr = minutes < 10 ? '0' + minutes : minutes
         let secondsStr = (parseInt(seconds) < 10) ? '0' + seconds : seconds
 
         return `${minutesStr}:${secondsStr}`
     }
+
+    get elapsedTime() {
+        return this._elapsedTime
+    }
+
+
 }
 
 
