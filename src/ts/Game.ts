@@ -1,4 +1,5 @@
 import { CoordsModel } from "../models/Cell.model.js"
+import { ScoreModel } from "../models/Score.model.js"
 import { Board } from "./Board.js"
 import { Cell } from "./Cell.js"
 import { Stack } from "./Stack.js"
@@ -49,6 +50,46 @@ export class Game {
     gameOver(isWin: boolean) {
         this._time.stop()
     }
+
+    getScore(): ScoreModel {
+        return { name: '', time: this._time.getTime() }
+    }
+
+    gameWin() {
+
+    }
+
+    // insertIntoTopTen(scores: Array<ScoreModel>, newScore:ScoreModel) {
+
+    //     scores.push(newScore);
+
+    //     scores.forEach(score => {
+    //         const [min, sec, ms] = score.time.split(/[:.]/);
+    //         // score.timeValue = parseInt(min) * 60000 + parseInt(sec) * 1000 + parseInt(ms);
+    //     });
+
+    //     // Sort the list based on the converted time values
+    //     scores.sort((a, b) => a.timeValue - b.timeValue);
+
+    //     // Remove the converted values to clean up
+    //     scores.forEach(score => {
+    //         delete score.timeValue;
+    //     });
+
+    //     // Check if the new score is within the top 10
+    //     if (scores.indexOf(newScore) < 10) {
+    //         // If the array length is greater than 10, truncate it to keep only the top 10
+    //         if (scores.length > 10) {
+    //             scores.length = 10;
+    //         }
+    //         return scores;
+    //     } else {
+    //         // If the new score did not make it to the top 10, remove it
+    //         scores.pop();
+    //         return false;
+    //     }
+    // }
+
 
     expandShown(rowIdx: number, colIdx: number): { htmlStr: string, row: number, col: number, minesAround: number }[] {
         let expandedCells: { row: number; col: number; htmlStr: string, minesAround: number }[] = []

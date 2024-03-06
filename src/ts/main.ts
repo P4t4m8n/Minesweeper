@@ -2,10 +2,12 @@
 import { CoordsModel } from "../models/Cell.model.js"
 import { Board } from "./Board.js"
 import { Cell } from "./Cell.js"
+import { FirebaseService } from "./FirebaseService.js"
 import { Game } from "./Game.js"
 
 const CLICK = 'click'
 const CONTEXTMENU = 'contextmenu'
+const DB_URL = 'https://mine-sweeper-766b3.firebaseio.com/'
 
 document.addEventListener('DOMContentLoaded', () => onInit())
 
@@ -15,6 +17,8 @@ function onInit(): void {
     renderBoard(4)
     handleEventListeners(game)
     renderHints()
+    renderScoreBoard()
+
 }
 
 function handleEventListeners(game: Game): void {
@@ -135,6 +139,16 @@ function renderUI(selector: string, value: number | string): void {
         el.innerText = value.toString()
     }
 
+}
+
+async function renderScoreBoard() {
+    const DB_URL = 'https://mine-sweeper-766b3.firebaseio.com/'
+
+    try {
+        const scoreBoard = await FirebaseService.fetchData('score/')
+        console.log("scoreBoard:", scoreBoard)
+        const elSCoreBoard = document.querySelector('.score-board-con')
+    } catch (err) { console.log(err) }
 }
 
 //EVENTS
