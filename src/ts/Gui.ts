@@ -36,10 +36,11 @@ export class Gui {
         elBoard.appendChild(boardFragment)
     }
 
-
     static setGridStyle(el: HTMLDivElement, size: number) {
+
         // Use 1rem for cells in small screens
         const cellSize = window.innerWidth <= 500 ? '1.5rem' : '1fr'
+
         el.style.gridTemplateColumns = `repeat(${size}, ${cellSize})`
         el.style.gridTemplateRows = `repeat(${size}, ${cellSize})`
     }
@@ -62,7 +63,6 @@ export class Gui {
 
             if (isHint) {
                 if (cell.isShown) return
-
             }
 
             Gui.renderCell(content, { row, col }, isContext, isHint)
@@ -93,6 +93,7 @@ export class Gui {
     }
 
     static renderHints(): void {
+
         const elHints = document.querySelector('.hint-con') as HTMLDivElement
         if (!elHints) return
 
@@ -105,7 +106,7 @@ export class Gui {
     }
 
     static renderUI(selector: string, value: number | string): void {
-        console.log("value:", value)
+
         const el = document.querySelector(selector) as HTMLSpanElement
 
         if (typeof value === 'string') {
@@ -113,33 +114,76 @@ export class Gui {
         } else {
             el.innerText = value.toString()
         }
-
     }
 
-    static renderScoreBoard(scores: Array<{ name: string, time: string }>, el: HTMLDialogElement) {
+    static renderScoreBoard(scores: Array<{ name: string, time: string }>, el: HTMLDialogElement): void {
+        if (!el) {
+            console.error('Scoreboard dialog element not found');
+            return
+        }
 
-        let strHtml = scores.map((score, idx) =>
-            `<section class="score">
-           <h2>${idx + 1} -</h2><h2>${score.name}</h2><h2>${score.time}</h2>
-            </section>`)
-            .join('')
+        // Create a document fragment to assemble the scoreboard
+        const scoreboardFragment = document.createDocumentFragment()
 
-        strHtml += `<button class="dialog-close">Close</button>`
+        // Append score entries
+        scores.forEach((score, idx) => {
+            const scoreEntry = Gui.createScoreEntry(score, idx)
+            scoreboardFragment.appendChild(scoreEntry)
+        })
 
-        this.renderUI('dialog', strHtml)
-        el?.showModal()
+        // Append close button
+        const closeButton = Gui.createCloseButton()
+        scoreboardFragment.appendChild(closeButton)
 
+        // Clear existing content and append the new scoreboard
+        el.innerHTML = ''
+        el.appendChild(scoreboardFragment)
+
+        el.showModal()
+    }
+
+    static createScoreEntry(score: { name: string, time: string }, idx: number): HTMLElement {
+
+        const section = document.createElement('section')
+        section.className = 'score'
+
+        const indexHeading = document.createElement('h2')
+        indexHeading.textContent = `${idx + 1} -`
+        section.appendChild(indexHeading)
+
+        const nameHeading = document.createElement('h2')
+        nameHeading.textContent = score.name
+        section.appendChild(nameHeading)
+
+        const timeHeading = document.createElement('h2')
+        timeHeading.textContent = score.time
+        section.appendChild(timeHeading);
+
+        return section
+    }
+
+    static createCloseButton(): HTMLElement {
+
+        const button = document.createElement('button')
+
+        button.className = 'dialog-close'
+        button.textContent = 'Close'
+        button.setAttribute('type', 'button')
+
+        return button
     }
 
     static updateCellClasses(elCell: HTMLDivElement, isHint: boolean, isContext: boolean): void {
+
         if (isHint) {
             elCell.classList.toggle('covered')
             elCell.classList.toggle('un-covered')
+
         } else if (!isContext) {
             elCell.classList.remove('covered')
             elCell.classList.add('un-covered')
         }
+
         elCell.classList.remove('safe')
     }
-
 }

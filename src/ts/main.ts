@@ -11,17 +11,14 @@ import { Timer } from "./Timer.js"
 
 const CLICK = 'click'
 const CONTEXTMENU = 'contextmenu'
-const DB_URL = 'https://mine-sweeper-766b3.firebaseio.com/'
 
 document.addEventListener('DOMContentLoaded', () => onInit())
 
 function onInit(): void {
-
     const game = new Game()
     Gui.renderBoard(4)
     handleEventListeners(game)
     Gui.renderHints()
-
 }
 
 //EVENTS

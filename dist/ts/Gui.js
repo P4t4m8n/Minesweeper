@@ -80,7 +80,6 @@ export class Gui {
         });
     }
     static renderUI(selector, value) {
-        console.log("value:", value);
         const el = document.querySelector(selector);
         if (typeof value === 'string') {
             el.innerHTML = value;
@@ -90,13 +89,45 @@ export class Gui {
         }
     }
     static renderScoreBoard(scores, el) {
-        let strHtml = scores.map((score, idx) => `<section class="score">
-           <h2>${idx + 1} -</h2><h2>${score.name}</h2><h2>${score.time}</h2>
-            </section>`)
-            .join('');
-        strHtml += `<button class="dialog-close">Close</button>`;
-        this.renderUI('dialog', strHtml);
-        el === null || el === void 0 ? void 0 : el.showModal();
+        if (!el) {
+            console.error('Scoreboard dialog element not found');
+            return;
+        }
+        // Create a document fragment to assemble the scoreboard
+        const scoreboardFragment = document.createDocumentFragment();
+        // Append score entries
+        scores.forEach((score, idx) => {
+            const scoreEntry = Gui.createScoreEntry(score, idx);
+            scoreboardFragment.appendChild(scoreEntry);
+        });
+        // Append close button
+        const closeButton = Gui.createCloseButton();
+        scoreboardFragment.appendChild(closeButton);
+        // Clear existing content and append the new scoreboard
+        el.innerHTML = '';
+        el.appendChild(scoreboardFragment);
+        el.showModal();
+    }
+    static createScoreEntry(score, idx) {
+        const section = document.createElement('section');
+        section.className = 'score';
+        const indexHeading = document.createElement('h2');
+        indexHeading.textContent = `${idx + 1} -`;
+        section.appendChild(indexHeading);
+        const nameHeading = document.createElement('h2');
+        nameHeading.textContent = score.name;
+        section.appendChild(nameHeading);
+        const timeHeading = document.createElement('h2');
+        timeHeading.textContent = score.time;
+        section.appendChild(timeHeading);
+        return section;
+    }
+    static createCloseButton() {
+        const button = document.createElement('button');
+        button.className = 'dialog-close';
+        button.textContent = 'Close';
+        button.setAttribute('type', 'button');
+        return button;
     }
     static updateCellClasses(elCell, isHint, isContext) {
         if (isHint) {

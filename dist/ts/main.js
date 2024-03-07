@@ -14,7 +14,6 @@ import { HtmlStorage } from "./HtmlStorage.js";
 import { Timer } from "./Timer.js";
 const CLICK = 'click';
 const CONTEXTMENU = 'contextmenu';
-const DB_URL = 'https://mine-sweeper-766b3.firebaseio.com/';
 document.addEventListener('DOMContentLoaded', () => onInit());
 function onInit() {
     const game = new Game();
