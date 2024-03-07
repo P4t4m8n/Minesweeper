@@ -16,11 +16,11 @@ export class Game {
     private _markedCount = 0
     private _mines!: number
     private _time!: Timer
-    private _lifes = 3
+    private _life = 3
     private _board!: Board
     private _size!: number
     private _safeClicks = 3
-    private _isManuallMines = false
+    private _isManualMines = false
     private _placedMines = 0
     private _stack!: Stack<any>
 
@@ -30,7 +30,7 @@ export class Game {
 
     startGame(coords: CoordsModel): void {
 
-        if (!this._isManuallMines) this._board.placeMines(this._mines, coords)
+        if (!this._isManualMines) this._board.placeMines(this._mines, coords)
 
         this._board.countMinesAround()
         this._time = new Timer()
@@ -44,51 +44,35 @@ export class Game {
     }
 
     checkLose(): boolean {
-        return this._lifes <= 0
+        return this._life <= 0
     }
 
     gameOver(isWin: boolean) {
         this._time.stop()
+        if (isWin) {
+            const newScore = this.getScore()
+            this.gameWin(newScore)
+        }
     }
 
     getScore(): ScoreModel {
-        return { name: '', time: this._time.getTime() }
+        return { name: '', time: this._time.elapsedTime }
     }
 
-    gameWin() {
+    gameWin(newScore: ScoreModel) {
 
     }
 
-    // insertIntoTopTen(scores: Array<ScoreModel>, newScore:ScoreModel) {
+    isTopTen(scores: Array<ScoreModel>, newScore: ScoreModel): number | boolean | Error {
 
-    //     scores.push(newScore);
+        const idx = scores.findIndex(score => newScore.time >= newScore.time)
 
-    //     scores.forEach(score => {
-    //         const [min, sec, ms] = score.time.split(/[:.]/);
-    //         // score.timeValue = parseInt(min) * 60000 + parseInt(sec) * 1000 + parseInt(ms);
-    //     });
+        if (idx < 0) return new Error('Problem with array scores')
 
-    //     // Sort the list based on the converted time values
-    //     scores.sort((a, b) => a.timeValue - b.timeValue);
+        if (idx < 10) return idx
 
-    //     // Remove the converted values to clean up
-    //     scores.forEach(score => {
-    //         delete score.timeValue;
-    //     });
-
-    //     // Check if the new score is within the top 10
-    //     if (scores.indexOf(newScore) < 10) {
-    //         // If the array length is greater than 10, truncate it to keep only the top 10
-    //         if (scores.length > 10) {
-    //             scores.length = 10;
-    //         }
-    //         return scores;
-    //     } else {
-    //         // If the new score did not make it to the top 10, remove it
-    //         scores.pop();
-    //         return false;
-    //     }
-    // }
+        return false
+    }
 
 
     expandShown(rowIdx: number, colIdx: number): { htmlStr: string, row: number, col: number, minesAround: number }[] {
@@ -118,13 +102,13 @@ export class Game {
         this._size = boardSize
         this._mines = mines
         this._placedMines = 0
-        this._isManuallMines = false
+        this._isManualMines = false
         this._isHint = false
         this._megaHintsCount = 1
         this._hintCount = 3
-        this._lifes = 2
+        this._life = 2
         this._safeClicks = 3
-        this._isManuallMines = false
+        this._isManualMines = false
 
         if (this._time) {
             this._time.stop()
@@ -139,7 +123,7 @@ export class Game {
     safeClick(): Cell | string {
         if (this._safeClicks <= 0) return 'No more safe clicks.'
 
-        const freeCells = this._size ** 2 - this._shownCount - (this._mines - (3 - this._lifes))
+        const freeCells = this._size ** 2 - this._shownCount - (this._mines - (3 - this._life))
         if (freeCells <= 0) return 'No more free cells.'
 
         let attempts = 0
@@ -173,7 +157,7 @@ export class Game {
 
         gameTemplate.shownCount = this._shownCount
         gameTemplate.markedCount = this._markedCount
-        gameTemplate.lifes = this._lifes
+        gameTemplate.life = this._life
         gameTemplate.board = this._board.clone()
 
         this._stack.push(gameTemplate)
@@ -184,7 +168,7 @@ export class Game {
 
         this._shownCount = savedGame.shownCount
         this._markedCount = savedGame.markedCount
-        this._lifes = savedGame.lifes
+        this._life = savedGame.life
         this._board = savedGame.board
     }
 
@@ -196,7 +180,7 @@ export class Game {
 
     get isOn(): boolean { return this._isOn }
 
-    get lifes(): number { return this._lifes }
+    get life(): number { return this._life }
 
     get shownCount(): number { return this._shownCount }
 
@@ -214,7 +198,7 @@ export class Game {
 
     get safeClicks(): number { return this._safeClicks }
 
-    get isManuallMines(): boolean { return this._isManuallMines }
+    get isManualMines(): boolean { return this._isManualMines }
 
     get placedMines(): number { return this._placedMines }
 
@@ -226,7 +210,7 @@ export class Game {
 
     set isOn(isOn: boolean) { this._isOn = isOn }
 
-    set lifes(amount: number) { this._lifes = amount }
+    set life(amount: number) { this._life = amount }
 
     set shownCount(amount: number) { this._shownCount = amount }
 
@@ -242,7 +226,7 @@ export class Game {
 
     set safeClicks(amount: number) { this._safeClicks = amount }
 
-    set isManuallMines(isManuallMines: boolean) { this._isManuallMines = isManuallMines }
+    set isManualMines(isManuallMines: boolean) { this._isManualMines = isManuallMines }
 
     set placedMines(amount: number) { this._placedMines = amount }
 
