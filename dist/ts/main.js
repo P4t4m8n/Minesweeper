@@ -52,62 +52,27 @@ function handleEventListeners(game) {
     const elOpenDialog = document.querySelector('.dialog-open');
     EventManager.addEventListener(elOpenDialog, CLICK, onOpenDialog);
 }
-function onCellClick(ev, game) {
-    ev.preventDefault();
-    ev.stopPropagation();
-    const target = ev.target;
+function onCellClick(event, game) {
+    event.preventDefault();
+    event.stopPropagation();
+    const target = event.target;
     if (!target.classList.contains('cell'))
         return;
-    const rowStr = target.getAttribute('data-row');
-    const colStr = target.getAttribute('data-col');
-    if (!rowStr || !colStr)
+    const row = getAttributeAsNumber(target, 'data-row');
+    const col = getAttributeAsNumber(target, 'data-col');
+    if (row === null || col === null)
         return;
-    const row = parseInt(rowStr);
-    const col = parseInt(colStr);
     const coords = { row, col };
-    if (game.isManualMines && game.placedMines > 0) {
-        return manuallyPlaceMines(game, coords);
-    }
-    if (game.placedMines === 0) {
-        removeClasses('.mine-placed');
-    }
-    if (!game.isOn) {
-        gameStart(game, coords);
-    }
-    const cell = game.getCellInstance(coords);
-    if (cell.isShown || cell.isMarked)
+    if (shouldSkipProcessing(game, coords))
         return;
-    if (game.isHint) {
-        handleRevealNeighbors(coords, game, cell);
-        game.isHint = false;
-        return;
-    }
-    if (game.isMegaHint) {
-        handleMegaHint(game, cell, coords);
-        return;
-    }
-    game.saveMove();
-    let showCount = game.shownCount;
-    if (cell.isMine) {
-        game.life = game.life - 1;
-        Gui.renderUI('.life', game.life);
-        if (game.checkLose())
-            gameOver(!game.checkLose(), game);
-    }
-    else if (cell.MinesAround > 0) {
-        cell.isShown = true;
-        showCount += 1;
-        game.shownCount = showCount;
-    }
-    else {
-        expandShown(coords, game);
-        showCount = game.shownCount;
-    }
-    Gui.renderCell(cell.htmlStr, coords);
-    Gui.renderUI('.shown', showCount);
-    let isWin = game.checkWin();
-    if (isWin)
-        gameOver(isWin, game);
+    processCellClick(game, coords);
+}
+function getAttributeAsNumber(element, attributeName) {
+    const attributeValue = element.getAttribute(attributeName);
+    if (!attributeValue)
+        return null;
+    const numberValue = parseInt(attributeValue, 10);
+    return isNaN(numberValue) ? null : numberValue;
 }
 function onContextClick(ev, game) {
     ev.preventDefault();
@@ -145,9 +110,7 @@ function onContextClick(ev, game) {
     }
     Gui.renderCell(renderType, coords, true);
     Gui.renderUI('.marked', game.markedCount);
-    let isWin = game.checkWin();
-    if (isWin)
-        gameOver(isWin, game);
+    checkGameEnd(game);
 }
 function onLevelChange(ev, game, size) {
     ev.preventDefault();
@@ -412,4 +375,56 @@ function removeClasses(className) {
     const elCells = document.querySelectorAll(className);
     let shortClassName = className.substring(1);
     elCells.forEach(elCell => elCell.classList.remove(shortClassName));
+}
+function shouldSkipProcessing(game, coords) {
+    if (game.isManualMines && game.placedMines > 0) {
+        manuallyPlaceMines(game, coords);
+        return true;
+    }
+    if (game.placedMines === 0) {
+        removeClasses('.mine-placed');
+    }
+    if (!game.isOn) {
+        gameStart(game, coords);
+    }
+    const cell = game.getCellInstance(coords);
+    if (cell.isShown || cell.isMarked)
+        return true;
+    if (game.isHint) {
+        handleRevealNeighbors(coords, game, cell);
+        game.isHint = false;
+        return true;
+    }
+    if (game.isMegaHint) {
+        handleMegaHint(game, cell, coords);
+        return true;
+    }
+    return false;
+}
+function processCellClick(game, coords) {
+    game.saveMove();
+    const cell = game.getCellInstance(coords);
+    updateCellState(game, cell, coords);
+    checkGameEnd(game);
+}
+function updateCellState(game, cell, coords) {
+    if (cell.isMine) {
+        game.life -= 1;
+        Gui.renderUI('.life', game.life);
+        if (game.checkLose())
+            gameOver(false, game);
+    }
+    else if (cell.MinesAround > 0) {
+        cell.isShown = true;
+        game.shownCount += 1;
+    }
+    else {
+        expandShown(coords, game);
+    }
+    Gui.renderCell(cell.htmlStr, coords);
+    Gui.renderUI('.shown', game.shownCount);
+}
+function checkGameEnd(game) {
+    if (game.checkWin())
+        gameOver(true, game);
 }
