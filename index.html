@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="assats/main.css">
 
-  <title>Mine Swepper</title>
+  <title>Mine Sweeper</title>
 </head>
 
 <body>
@@ -27,7 +27,6 @@
         <div class="safe-click">
           <button>SafeClick</button>
           <span class="safe-click-txt"></span>
-
         </div>
 
         <button class="manually-create">Place Mines</button>
@@ -70,9 +69,14 @@
     <section class="board-container">
     </section>
 
-    <button class="toggle-dark">Dark Mode</button>
-    <section class="score-board-con"></section>
+    <div class="btns">
+      <button class="toggle-dark">Dark Mode</button>
+      <button class="dialog-open">Score Board</button>
+    </div>
+
+    <dialog class="score-board-con"></dialog>
   </main>
+
 
   <script type="module" src="/dist/ts/Main.js"></script>
 </body>

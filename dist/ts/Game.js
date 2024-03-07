@@ -1,9 +1,11 @@
+var _Game_instances, _Game_checkTopTen;
 import { Board } from "./Board.js";
 import { Stack } from "./Stack.js";
 import { Timer } from "./Timer.js";
 import { Util } from "./Util.js";
 export class Game {
     constructor(boardSize = 4, mines = 2) {
+        _Game_instances.add(this);
         this._isOn = false;
         this._isHint = false;
         this._isMegaHint = false;
@@ -31,25 +33,11 @@ export class Game {
     checkLose() {
         return this._life <= 0;
     }
-    gameOver(isWin) {
+    gameOver() {
         this._time.stop();
-        if (isWin) {
-            const newScore = this.getScore();
-            this.gameWin(newScore);
-        }
     }
-    getScore() {
-        return { name: '', time: this._time.elapsedTime };
-    }
-    gameWin(newScore) {
-    }
-    isTopTen(scores, newScore) {
-        const idx = scores.findIndex(score => newScore.time >= newScore.time);
-        if (idx < 0)
-            return new Error('Problem with array scores');
-        if (idx < 10)
-            return idx;
-        return false;
+    getScore(name = '') {
+        return { name, time: this._time.elapsedTime };
     }
     expandShown(rowIdx, colIdx) {
         let expandedCells = [];
@@ -160,3 +148,7 @@ export class Game {
     set isMegaHint(isMegaHint) { this._isMegaHint = isMegaHint; }
     set megaHintsCount(amount) { this._megaHintsCount = amount; }
 }
+_Game_instances = new WeakSet(), _Game_checkTopTen = function _Game_checkTopTen(newScore, scores) {
+    const idx = scores.findIndex(score => score.time >= newScore.time);
+    return idx;
+};

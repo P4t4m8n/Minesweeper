@@ -1,5 +1,6 @@
 
 import { CoordsModel } from "../models/Cell.model.js"
+import { ScoreModel } from "../models/Score.model.js"
 import { Board } from "./Board.js"
 import { Cell } from "./Cell.js"
 import { FirebaseService } from "./FirebaseService.js"
@@ -19,8 +20,7 @@ function onInit(): void {
     Gui.renderBoard(4)
     handleEventListeners(game)
     Gui.renderHints()
-    onRenderScoreBoard()
-
+    
 }
 
 //EVENTS
@@ -60,6 +60,10 @@ function handleEventListeners(game: Game): void {
 
     const elMegaHintBtn = document.querySelector('.mega-hint')
     EventManager.addEventListener(elMegaHintBtn, CLICK, onMegaHint, game)
+
+    const elOpenDialog = document.querySelector('.dialog-open')
+    EventManager.addEventListener(elOpenDialog, CLICK, onOpenDialog)
+
 }
 
 function onCellClick(ev: Event, game: Game): void {
@@ -112,7 +116,7 @@ function onCellClick(ev: Event, game: Game): void {
     if (cell.isMine) {
         game.life = game.life - 1
         Gui.renderUI('.life', game.life)
-        if (game.checkLose()) return gameOver(!game.checkLose(), game)
+        if (game.checkLose()) gameOver(!game.checkLose(), game)
     }
 
     else if (cell.MinesAround > 0) {
@@ -207,7 +211,8 @@ function onRestart(ev: Event, game: Game, size: number, mines: number): void {
     Gui.renderUI('.restart-svg', HtmlStorage.getSmileySvg())
 }
 
-function onHint(game: Game, idx: number): void {
+function onHint(ev: Event, game: Game, idx: number): void {
+    console.log("idx:", idx)
 
     let newHintCount = game.hintCount
 
@@ -220,11 +225,13 @@ function onHint(game: Game, idx: number): void {
     game.isHint = true
 }
 
-function onSafeClick(game: Game): void {
+function onSafeClick(ev: Event, game: Game): void {
+    console.log("game:", game)
 
     if (!game.isOn) return
 
     const cell = game.safeClick()
+    console.log("cell:", cell)
     if (typeof cell === 'string') return alert(cell)
 
     const { row, col } = cell.coords
@@ -234,7 +241,7 @@ function onSafeClick(game: Game): void {
     Gui.renderUI('.safe-click-txt', HtmlStorage.getHintsHtml(game.safeClicks))
 }
 
-function onManuallyCreate(game: Game): void {
+function onManuallyCreate(ev: Event, game: Game): void {
     game.isManualMines = true
     game.placedMines = game.mines
 }
@@ -260,19 +267,24 @@ function onToggleDarkMode(): void {
     elBtn.innerText = (elBtn.innerText === 'Dark Mode') ? 'Normal Mode' : 'Dark Mode'
 }
 
-function onMegaHint(game: Game): void {
+function onMegaHint(ev: Event, game: Game): void {
     if (!game.isOn) return
     game.isMegaHint = true
 }
 
-async function onRenderScoreBoard() {
-    const DB_URL = 'https://mine-sweeper-766b3.firebaseio.com/'
+async function onOpenDialog(ev: Event) {
 
-    try {
-        const scoreBoard = await FirebaseService.fetchData('score/')
-        console.log("scoreBoard:", scoreBoard)
-        Gui.renderBoard(scoreBoard)
-    } catch (err) { console.log(err) }
+    const elScoreBoard = document.querySelector('dialog') as HTMLDialogElement
+    const scoreBoard = await getScoreBoard()
+
+    Gui.renderScoreBoard(scoreBoard, elScoreBoard)
+
+    const elCloseDialog = elScoreBoard.querySelector('.dialog-close')
+    EventManager.addEventListener(elCloseDialog, CLICK, onCloseDIalog, elScoreBoard)
+}
+
+function onCloseDIalog(ev: Event, elDialog: HTMLDialogElement) {
+    elDialog.close()
 }
 
 //Methods
@@ -286,17 +298,49 @@ function gameStart(game: Game, coords: { row: number, col: number }): void {
     Gui.renderUI('.safe-click-txt', HtmlStorage.getHintsHtml(game.safeClicks))
 }
 
-function gameOver(isWin: boolean, game: Game) {
+async function getScoreBoard(): Promise<ScoreModel[]> {
+
+    try {
+        const data = await FirebaseService.fetchData('score/')
+        const scores = data.documents
+            .map((score: { fields: { name: { stringValue: String }, time: { doubleValue: number } } }) =>
+                ({ name: score.fields.name.stringValue, time: score.fields.time.doubleValue })) as Array<ScoreModel>
+        return scores
+    } catch (err) {
+        console.log(err)
+        return []
+    }
+}
+
+async function gameOver(isWin: boolean, game: Game) {
+
     if (isWin) {
         alert('Win')
+        const name = prompt('Enter your name') || ''
+        const newScore = game.getScore(name)
         Gui.renderUI('.restart-svg', HtmlStorage.getHappySMileySvg())
+        const scores = await getScoreBoard()
+        game.gameOver()
+        addScore(newScore)
     }
     else {
         alert('Lose')
         revealMines(game.board)
         Gui.renderUI('.restart-svg', HtmlStorage.getSadSmileySvg())
+        game.gameOver()
     }
-    game.gameOver(isWin)
+}
+
+async function addScore(score: ScoreModel) {
+
+    try {
+        const data = await FirebaseService.postData('score/', score)
+        console.log("data:", data)
+
+        return data
+    } catch (err) {
+        console.log(err)
+    }
 }
 
 function expandShown(coords: CoordsModel, game: Game): void {

@@ -20,7 +20,6 @@ function onInit() {
     Gui.renderBoard(4);
     handleEventListeners(game);
     Gui.renderHints();
-    onRenderScoreBoard();
 }
 //EVENTS
 function handleEventListeners(game) {
@@ -50,6 +49,8 @@ function handleEventListeners(game) {
     EventManager.addEventListener(elDarkBtn, CLICK, onToggleDarkMode);
     const elMegaHintBtn = document.querySelector('.mega-hint');
     EventManager.addEventListener(elMegaHintBtn, CLICK, onMegaHint, game);
+    const elOpenDialog = document.querySelector('.dialog-open');
+    EventManager.addEventListener(elOpenDialog, CLICK, onOpenDialog);
 }
 function onCellClick(ev, game) {
     ev.preventDefault();
@@ -91,7 +92,7 @@ function onCellClick(ev, game) {
         game.life = game.life - 1;
         Gui.renderUI('.life', game.life);
         if (game.checkLose())
-            return gameOver(!game.checkLose(), game);
+            gameOver(!game.checkLose(), game);
     }
     else if (cell.MinesAround > 0) {
         cell.isShown = true;
@@ -163,7 +164,8 @@ function onRestart(ev, game, size, mines) {
     Gui.renderUI('.marked', game.markedCount);
     Gui.renderUI('.restart-svg', HtmlStorage.getSmileySvg());
 }
-function onHint(game, idx) {
+function onHint(ev, game, idx) {
+    console.log("idx:", idx);
     let newHintCount = game.hintCount;
     Gui.renderUI(`.hint${idx}`, HtmlStorage.getLightBulbActiveSvg());
     if (newHintCount <= 0)
@@ -172,10 +174,12 @@ function onHint(game, idx) {
     game.hintCount = newHintCount;
     game.isHint = true;
 }
-function onSafeClick(game) {
+function onSafeClick(ev, game) {
+    console.log("game:", game);
     if (!game.isOn)
         return;
     const cell = game.safeClick();
+    console.log("cell:", cell);
     if (typeof cell === 'string')
         return alert(cell);
     const { row, col } = cell.coords;
@@ -183,7 +187,7 @@ function onSafeClick(game) {
     elCell.classList.add('safe');
     Gui.renderUI('.safe-click-txt', HtmlStorage.getHintsHtml(game.safeClicks));
 }
-function onManuallyCreate(game) {
+function onManuallyCreate(ev, game) {
     game.isManualMines = true;
     game.placedMines = game.mines;
 }
@@ -205,23 +209,22 @@ function onToggleDarkMode() {
     const elBtn = document.querySelector('.toggle-dark');
     elBtn.innerText = (elBtn.innerText === 'Dark Mode') ? 'Normal Mode' : 'Dark Mode';
 }
-function onMegaHint(game) {
+function onMegaHint(ev, game) {
     if (!game.isOn)
         return;
     game.isMegaHint = true;
 }
-function onRenderScoreBoard() {
+function onOpenDialog(ev) {
     return __awaiter(this, void 0, void 0, function* () {
-        const DB_URL = 'https://mine-sweeper-766b3.firebaseio.com/';
-        try {
-            const scoreBoard = yield FirebaseService.fetchData('score/');
-            console.log("scoreBoard:", scoreBoard);
-            Gui.renderBoard(scoreBoard);
-        }
-        catch (err) {
-            console.log(err);
-        }
+        const elScoreBoard = document.querySelector('dialog');
+        const scoreBoard = yield getScoreBoard();
+        Gui.renderScoreBoard(scoreBoard, elScoreBoard);
+        const elCloseDialog = elScoreBoard.querySelector('.dialog-close');
+        EventManager.addEventListener(elCloseDialog, CLICK, onCloseDIalog, elScoreBoard);
     });
+}
+function onCloseDIalog(ev, elDialog) {
+    elDialog.close();
 }
 //Methods
 function gameStart(game, coords) {
@@ -231,17 +234,50 @@ function gameStart(game, coords) {
     Gui.renderUI('.restart-svg', HtmlStorage.getWorriedSmiley());
     Gui.renderUI('.safe-click-txt', HtmlStorage.getHintsHtml(game.safeClicks));
 }
+function getScoreBoard() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const data = yield FirebaseService.fetchData('score/');
+            const scores = data.documents
+                .map((score) => ({ name: score.fields.name.stringValue, time: score.fields.time.doubleValue }));
+            return scores;
+        }
+        catch (err) {
+            console.log(err);
+            return [];
+        }
+    });
+}
 function gameOver(isWin, game) {
-    if (isWin) {
-        alert('Win');
-        Gui.renderUI('.restart-svg', HtmlStorage.getHappySMileySvg());
-    }
-    else {
-        alert('Lose');
-        revealMines(game.board);
-        Gui.renderUI('.restart-svg', HtmlStorage.getSadSmileySvg());
-    }
-    game.gameOver(isWin);
+    return __awaiter(this, void 0, void 0, function* () {
+        if (isWin) {
+            alert('Win');
+            const name = prompt('Enter your name') || '';
+            const newScore = game.getScore(name);
+            Gui.renderUI('.restart-svg', HtmlStorage.getHappySMileySvg());
+            const scores = yield getScoreBoard();
+            game.gameOver();
+            addScore(newScore);
+        }
+        else {
+            alert('Lose');
+            revealMines(game.board);
+            Gui.renderUI('.restart-svg', HtmlStorage.getSadSmileySvg());
+            game.gameOver();
+        }
+    });
+}
+function addScore(score) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const data = yield FirebaseService.postData('score/', score);
+            console.log("data:", data);
+            return data;
+        }
+        catch (err) {
+            console.log(err);
+        }
+    });
 }
 function expandShown(coords, game) {
     const { row: rowIdx, col: colIdx } = coords;

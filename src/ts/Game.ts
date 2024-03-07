@@ -47,31 +47,18 @@ export class Game {
         return this._life <= 0
     }
 
-    gameOver(isWin: boolean) {
+    gameOver() {
         this._time.stop()
-        if (isWin) {
-            const newScore = this.getScore()
-            this.gameWin(newScore)
-        }
-    }
-
-    getScore(): ScoreModel {
-        return { name: '', time: this._time.elapsedTime }
-    }
-
-    gameWin(newScore: ScoreModel) {
 
     }
 
-    isTopTen(scores: Array<ScoreModel>, newScore: ScoreModel): number | boolean | Error {
+    getScore(name = ''): ScoreModel {
+        return { name, time: this._time.elapsedTime }
+    }
 
-        const idx = scores.findIndex(score => newScore.time >= newScore.time)
-
-        if (idx < 0) return new Error('Problem with array scores')
-
-        if (idx < 10) return idx
-
-        return false
+    #checkTopTen(newScore: ScoreModel, scores: Array<ScoreModel>): number {
+        const idx = scores.findIndex(score => score.time >= newScore.time)
+        return idx
     }
 
 

@@ -1,4 +1,5 @@
-import { HtmlStorage } from "./HtmlStorage";
+import { HtmlStorage } from "./HtmlStorage.js";
+import { Timer } from "./Timer.js";
 export class Gui {
     static renderBoard(size) {
         const elBoard = document.querySelector('.board-container');
@@ -59,9 +60,14 @@ export class Gui {
             el.innerText = value.toString();
         }
     }
-    static renderScoreBoard(scores) {
-        console.log("scores:", scores);
-        const elSCoreBoard = document.querySelector('.score-board-con');
-        console.log("elSCoreBoard:", elSCoreBoard);
+    static renderScoreBoard(scores, el) {
+        const elSCoreBoard = document.querySelector('dialog');
+        let strHtml = scores.map(score => `<section class="score">
+            <h2>${score.name}</2><h2>${Timer.getTime(score.time)}</h2>
+            </section>`)
+            .join('');
+        strHtml += `<button class="dialog-close">Close</button>`;
+        this.renderUI('dialog', strHtml);
+        elSCoreBoard === null || elSCoreBoard === void 0 ? void 0 : elSCoreBoard.showModal();
     }
 }

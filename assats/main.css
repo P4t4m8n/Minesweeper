@@ -1,11 +1,17 @@
 @import 'cell.css';
 @import 'board.css';
-@import '/assats/header.css';
-@import '/assats/typography.css';
+@import '/assets/header.css';
+@import '/assets/typography.css';
 
 
 body {
   height: 100vh;
+}
+
+body:has(.score) {
+  :not(.score, .score*) {
+    pointer-events: none;
+  }
 }
 
 main {
@@ -63,7 +69,8 @@ button:hover {
   outline: 0;
 }
 
-.toggle-dark{
+.btns {
+  display: flex;
   align-self: center;
+  gap: 1em;
 }
-

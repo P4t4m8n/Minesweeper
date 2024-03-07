@@ -13,8 +13,9 @@ export class FirebaseService {
         return __awaiter(this, void 0, void 0, function* () {
             const projectId = 'mine-sweeper-766b3';
             const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/`;
+            const orderBy = '?orderBy=time desc';
             try {
-                const response = yield fetch(`${baseUrl}${collectionPath}`);
+                const response = yield fetch(`${baseUrl}${collectionPath}${orderBy}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -27,25 +28,35 @@ export class FirebaseService {
             }
         });
     }
-    static addData(path, data) {
+    static postData(collectionPath, data) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("data:", data);
             const projectId = 'mine-sweeper-766b3';
             const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/`;
+            const newData = {
+                fields: {
+                    name: { stringValue: data.name },
+                    time: { doubleValue: data.time }
+                }
+            };
             const fetchData = {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'score/json',
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ fields: data }),
+                body: JSON.stringify(newData),
             };
             try {
-                const response = yield fetch(`${baseUrl}/${path}`, fetchData);
+                const response = yield fetch(`${baseUrl}${collectionPath}`, fetchData);
                 if (!response.ok) {
+                    const errorBody = yield response.text();
+                    console.error(`HTTP error! Status: ${response.status}, Body: ${errorBody}`);
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 return yield response.json();
             }
             catch (err) {
+                console.error("Error in postData:", err);
                 throw err;
             }
         });

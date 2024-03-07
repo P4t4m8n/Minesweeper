@@ -22,15 +22,15 @@ export class Timer {
         this.running = false;
     }
     render() {
-        let timeStr = this.getTime();
+        let timeStr = Timer.getTime(this._elapsedTime);
         const elTimer = document.querySelector('.timer');
         if (elTimer) {
             elTimer.innerText = timeStr;
         }
     }
-    getTime() {
-        let minutes = Math.floor(this._elapsedTime / 60000);
-        let seconds = ((this._elapsedTime % 60000) / 1000).toFixed(2);
+    static getTime(elapsedTime) {
+        let minutes = Math.floor(elapsedTime / 60000);
+        let seconds = ((elapsedTime % 60000) / 1000).toFixed(2);
         let minutesStr = minutes < 10 ? '0' + minutes : minutes;
         let secondsStr = (parseInt(seconds) < 10) ? '0' + seconds : seconds;
         return `${minutesStr}:${secondsStr}`;
