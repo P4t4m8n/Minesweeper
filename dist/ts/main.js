@@ -11,6 +11,7 @@ import { FirebaseService } from "./FirebaseService.js";
 import { Game } from "./Game.js";
 import { Gui } from "./Gui.js";
 import { HtmlStorage } from "./HtmlStorage.js";
+import { Timer } from "./Timer.js";
 const CLICK = 'click';
 const CONTEXTMENU = 'contextmenu';
 const DB_URL = 'https://mine-sweeper-766b3.firebaseio.com/';
@@ -162,10 +163,9 @@ function onRestart(ev, game, size, mines) {
     Gui.renderUI('.life', game.life);
     Gui.renderUI('.shown', game.shownCount);
     Gui.renderUI('.marked', game.markedCount);
-    Gui.renderUI('.restart-svg', HtmlStorage.getSmileyImg());
+    Gui.renderUI('.restart', HtmlStorage.getSmileyImg());
 }
 function onHint(ev, game, idx) {
-    console.log("idx:", idx);
     let newHintCount = game.hintCount;
     Gui.renderUI(`.hint${idx}`, HtmlStorage.getLightBulbActiveSvg());
     if (newHintCount <= 0)
@@ -175,11 +175,9 @@ function onHint(ev, game, idx) {
     game.isHint = true;
 }
 function onSafeClick(ev, game) {
-    console.log("game:", game);
     if (!game.isOn)
         return;
     const cell = game.safeClick();
-    console.log("cell:", cell);
     if (typeof cell === 'string')
         return alert(cell);
     const { row, col } = cell.coords;
@@ -218,13 +216,13 @@ function onOpenDialog(ev) {
     return __awaiter(this, void 0, void 0, function* () {
         const elScoreBoard = document.querySelector('dialog');
         const scoreBoard = yield getScoreBoard();
-        Gui.renderScoreBoard(scoreBoard, elScoreBoard);
+        const updateScoreTime = scoreBoard.map(score => ({ name: score.name, time: Timer.getTime(score.time) }));
+        Gui.renderScoreBoard(updateScoreTime, elScoreBoard);
         const elCloseDialog = elScoreBoard.querySelector('.dialog-close');
         EventManager.addEventListener(elCloseDialog, CLICK, onCloseDialog, elScoreBoard);
     });
 }
 function onCloseDialog(ev, elDialog) {
-    console.log("ev:", ev);
     elDialog.close();
 }
 //Methods
@@ -244,7 +242,7 @@ function getScoreBoard() {
             return scores;
         }
         catch (err) {
-            console.log(err);
+            console.error(err);
             return [];
         }
     });
@@ -257,6 +255,7 @@ function gameOver(isWin, game) {
         Gui.renderUI('.restart', HtmlStorage.getHappySMileyImg());
         game.gameOver();
         addScore(newScore);
+        onOpenDialog('');
     }
     else {
         alert('Lose');
@@ -269,11 +268,10 @@ function addScore(score) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const data = yield FirebaseService.postData('score/', score);
-            console.log("data:", data);
             return data;
         }
         catch (err) {
-            console.log(err);
+            console.error(err);
         }
     });
 }

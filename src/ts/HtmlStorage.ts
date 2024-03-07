@@ -15,7 +15,7 @@ export class HtmlStorage {
 
     static getGameSmileyImg(): string {
         return (
-            `<img class="restart-img !!!!!!!!!!!" src="https://res.cloudinary.com/dpnevk8db/image/upload/v1709832876/icons8-tongue-out-48_gzxiod.png">`
+            `<img class="restart-img" src="https://res.cloudinary.com/dpnevk8db/image/upload/v1709832876/icons8-tongue-out-48_gzxiod.png">`
 
         )
     }

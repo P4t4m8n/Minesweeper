@@ -7,6 +7,7 @@ import { FirebaseService } from "./FirebaseService.js"
 import { Game } from "./Game.js"
 import { Gui } from "./Gui.js"
 import { HtmlStorage } from "./HtmlStorage.js"
+import { Timer } from "./Timer.js"
 
 const CLICK = 'click'
 const CONTEXTMENU = 'contextmenu'
@@ -208,11 +209,10 @@ function onRestart(ev: Event, game: Game, size: number, mines: number): void {
     Gui.renderUI('.life', game.life);
     Gui.renderUI('.shown', game.shownCount);
     Gui.renderUI('.marked', game.markedCount)
-    Gui.renderUI('.restart-svg', HtmlStorage.getSmileyImg())
+    Gui.renderUI('.restart', HtmlStorage.getSmileyImg())
 }
 
 function onHint(ev: Event, game: Game, idx: number): void {
-    console.log("idx:", idx)
 
     let newHintCount = game.hintCount
 
@@ -226,12 +226,10 @@ function onHint(ev: Event, game: Game, idx: number): void {
 }
 
 function onSafeClick(ev: Event, game: Game): void {
-    console.log("game:", game)
 
     if (!game.isOn) return
 
     const cell = game.safeClick()
-    console.log("cell:", cell)
     if (typeof cell === 'string') return alert(cell)
 
     const { row, col } = cell.coords
@@ -272,19 +270,19 @@ function onMegaHint(ev: Event, game: Game): void {
     game.isMegaHint = true
 }
 
-async function onOpenDialog(ev: Event) {
+async function onOpenDialog(ev: any) {
 
     const elScoreBoard = document.querySelector('dialog') as HTMLDialogElement
     const scoreBoard = await getScoreBoard()
+    const updateScoreTime = scoreBoard.map(score => ({ name: score.name, time: Timer.getTime(score.time) }))
 
-    Gui.renderScoreBoard(scoreBoard, elScoreBoard)
+    Gui.renderScoreBoard(updateScoreTime, elScoreBoard)
 
     const elCloseDialog = elScoreBoard.querySelector('.dialog-close')
     EventManager.addEventListener(elCloseDialog, CLICK, onCloseDialog, elScoreBoard)
 }
 
-function onCloseDialog(ev: Event, elDialog: HTMLDialogElement) {
-    console.log("ev:", ev)
+function onCloseDialog(ev: any, elDialog: HTMLDialogElement) {
     elDialog.close()
 }
 
@@ -308,7 +306,7 @@ async function getScoreBoard(): Promise<ScoreModel[]> {
                 ({ name: score.fields.name.stringValue, time: score.fields.time.doubleValue })) as Array<ScoreModel>
         return scores
     } catch (err) {
-        console.log(err)
+        console.error(err)
         return []
     }
 }
@@ -322,6 +320,7 @@ function gameOver(isWin: boolean, game: Game) {
         Gui.renderUI('.restart', HtmlStorage.getHappySMileyImg())
         game.gameOver()
         addScore(newScore)
+        onOpenDialog('')
     }
     else {
         alert('Lose')
@@ -335,11 +334,10 @@ async function addScore(score: ScoreModel) {
 
     try {
         const data = await FirebaseService.postData('score/', score)
-        console.log("data:", data)
 
         return data
     } catch (err) {
-        console.log(err)
+        console.error(err)
     }
 }
 

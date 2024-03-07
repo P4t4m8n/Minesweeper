@@ -6,7 +6,7 @@ export class HtmlStorage {
         return (`<img class="restart-img" src="https://res.cloudinary.com/dpnevk8db/image/upload/v1709832876/icons8-happy-smiley-48_qqleaa.png">`);
     }
     static getGameSmileyImg() {
-        return (`<img class="restart-img !!!!!!!!!!!" src="https://res.cloudinary.com/dpnevk8db/image/upload/v1709832876/icons8-tongue-out-48_gzxiod.png">`);
+        return (`<img class="restart-img" src="https://res.cloudinary.com/dpnevk8db/image/upload/v1709832876/icons8-tongue-out-48_gzxiod.png">`);
     }
     static getSadSmileyImg() {
         return (`<img class="restart-img" src="https://res.cloudinary.com/dpnevk8db/image/upload/v1709832876/icons8-sad-48_yywbuu.png">`);
