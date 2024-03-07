@@ -13,9 +13,10 @@ export class FirebaseService {
         return __awaiter(this, void 0, void 0, function* () {
             const projectId = 'mine-sweeper-766b3';
             const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/`;
-            const orderBy = '?orderBy=time desc';
+            const orderBy = '?orderBy=time';
+            const limit = '&pageSize=5';
             try {
-                const response = yield fetch(`${baseUrl}${collectionPath}${orderBy}`);
+                const response = yield fetch(`${baseUrl}${collectionPath}${orderBy}${limit}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }

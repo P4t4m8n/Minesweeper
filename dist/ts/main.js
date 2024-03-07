@@ -217,13 +217,15 @@ function onMegaHint(ev, game) {
 function onOpenDialog(ev) {
     return __awaiter(this, void 0, void 0, function* () {
         const elScoreBoard = document.querySelector('dialog');
+        console.log("elScoreBoard:", elScoreBoard);
         const scoreBoard = yield getScoreBoard();
         Gui.renderScoreBoard(scoreBoard, elScoreBoard);
         const elCloseDialog = elScoreBoard.querySelector('.dialog-close');
-        EventManager.addEventListener(elCloseDialog, CLICK, onCloseDIalog, elScoreBoard);
+        EventManager.addEventListener(elCloseDialog, CLICK, onCloseDialog, elScoreBoard);
     });
 }
-function onCloseDIalog(ev, elDialog) {
+function onCloseDialog(ev, elDialog) {
+    console.log("ev:", ev);
     elDialog.close();
 }
 //Methods

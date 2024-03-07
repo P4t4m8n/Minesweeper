@@ -275,15 +275,17 @@ function onMegaHint(ev: Event, game: Game): void {
 async function onOpenDialog(ev: Event) {
 
     const elScoreBoard = document.querySelector('dialog') as HTMLDialogElement
+    console.log("elScoreBoard:", elScoreBoard)
     const scoreBoard = await getScoreBoard()
 
     Gui.renderScoreBoard(scoreBoard, elScoreBoard)
 
     const elCloseDialog = elScoreBoard.querySelector('.dialog-close')
-    EventManager.addEventListener(elCloseDialog, CLICK, onCloseDIalog, elScoreBoard)
+    EventManager.addEventListener(elCloseDialog, CLICK, onCloseDialog, elScoreBoard)
 }
 
-function onCloseDIalog(ev: Event, elDialog: HTMLDialogElement) {
+function onCloseDialog(ev: Event, elDialog: HTMLDialogElement) {
+    console.log("ev:", ev)
     elDialog.close()
 }
 

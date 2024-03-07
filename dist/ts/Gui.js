@@ -61,13 +61,12 @@ export class Gui {
         }
     }
     static renderScoreBoard(scores, el) {
-        const elSCoreBoard = document.querySelector('dialog');
-        let strHtml = scores.map(score => `<section class="score">
-            <h2>${score.name}</2><h2>${Timer.getTime(score.time)}</h2>
+        let strHtml = scores.map((score, idx) => `<section class="score">
+           <h2>${idx + 1} -</h2><h2>${score.name}</2><h2>${Timer.getTime(score.time)}</h2>
             </section>`)
             .join('');
         strHtml += `<button class="dialog-close">Close</button>`;
         this.renderUI('dialog', strHtml);
-        elSCoreBoard === null || elSCoreBoard === void 0 ? void 0 : elSCoreBoard.showModal();
+        el === null || el === void 0 ? void 0 : el.showModal();
     }
 }

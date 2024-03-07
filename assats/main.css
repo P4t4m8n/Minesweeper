@@ -1,7 +1,8 @@
 @import 'cell.css';
 @import 'board.css';
-@import '/assets/header.css';
-@import '/assets/typography.css';
+@import 'header.css';
+@import 'typography.css';
+@import 'dialog.css';
 
 
 body {

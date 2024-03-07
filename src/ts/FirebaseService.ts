@@ -7,10 +7,11 @@ export class FirebaseService {
     static async fetchData(collectionPath: string) {
         const projectId = 'mine-sweeper-766b3'
         const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/`
-        const orderBy = '?orderBy=time desc'
+        const orderBy = '?orderBy=time'
+        const limit = '&pageSize=5'
 
         try {
-            const response = await fetch(`${baseUrl}${collectionPath}${orderBy}`)
+            const response = await fetch(`${baseUrl}${collectionPath}${orderBy}${limit}`)
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`)
             }
@@ -23,7 +24,7 @@ export class FirebaseService {
     }
 
     static async postData(collectionPath: string, data: any) {
-    console.log("data:", data)
+        console.log("data:", data)
 
         const projectId = 'mine-sweeper-766b3'
         const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/`

@@ -1,0 +1,10 @@
+.score {
+    padding: 1em;
+    display: grid;
+    grid-template-columns: 10% 50% 40%;
+
+}
+
+.score-board-con{
+    width: 40vw;
+}
