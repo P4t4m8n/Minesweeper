@@ -52,7 +52,9 @@ export class Gui {
         });
     }
     static renderUI(selector, value) {
+        console.log("value:", value);
         const el = document.querySelector(selector);
+        console.log("el:", el);
         if (typeof value === 'string') {
             el.innerHTML = value;
         }

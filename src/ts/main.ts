@@ -20,7 +20,7 @@ function onInit(): void {
     Gui.renderBoard(4)
     handleEventListeners(game)
     Gui.renderHints()
-    
+
 }
 
 //EVENTS
@@ -208,7 +208,7 @@ function onRestart(ev: Event, game: Game, size: number, mines: number): void {
     Gui.renderUI('.life', game.life);
     Gui.renderUI('.shown', game.shownCount);
     Gui.renderUI('.marked', game.markedCount)
-    Gui.renderUI('.restart-svg', HtmlStorage.getSmileySvg())
+    Gui.renderUI('.restart-svg', HtmlStorage.getSmileyImg())
 }
 
 function onHint(ev: Event, game: Game, idx: number): void {
@@ -275,7 +275,6 @@ function onMegaHint(ev: Event, game: Game): void {
 async function onOpenDialog(ev: Event) {
 
     const elScoreBoard = document.querySelector('dialog') as HTMLDialogElement
-    console.log("elScoreBoard:", elScoreBoard)
     const scoreBoard = await getScoreBoard()
 
     Gui.renderScoreBoard(scoreBoard, elScoreBoard)
@@ -296,7 +295,7 @@ function gameStart(game: Game, coords: { row: number, col: number }): void {
     game.startGame(coords)
     let life = game.life
     Gui.renderUI('.life', life)
-    Gui.renderUI('.restart-svg', HtmlStorage.getWorriedSmiley())
+    Gui.renderUI('.restart', HtmlStorage.getGameSmileyImg())
     Gui.renderUI('.safe-click-txt', HtmlStorage.getHintsHtml(game.safeClicks))
 }
 
@@ -314,21 +313,20 @@ async function getScoreBoard(): Promise<ScoreModel[]> {
     }
 }
 
-async function gameOver(isWin: boolean, game: Game) {
+function gameOver(isWin: boolean, game: Game) {
 
     if (isWin) {
         alert('Win')
         const name = prompt('Enter your name') || ''
         const newScore = game.getScore(name)
-        Gui.renderUI('.restart-svg', HtmlStorage.getHappySMileySvg())
-        const scores = await getScoreBoard()
+        Gui.renderUI('.restart', HtmlStorage.getHappySMileyImg())
         game.gameOver()
         addScore(newScore)
     }
     else {
         alert('Lose')
         revealMines(game.board)
-        Gui.renderUI('.restart-svg', HtmlStorage.getSadSmileySvg())
+        Gui.renderUI('.restart', HtmlStorage.getSadSmileyImg())
         game.gameOver()
     }
 }

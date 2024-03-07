@@ -162,7 +162,7 @@ function onRestart(ev, game, size, mines) {
     Gui.renderUI('.life', game.life);
     Gui.renderUI('.shown', game.shownCount);
     Gui.renderUI('.marked', game.markedCount);
-    Gui.renderUI('.restart-svg', HtmlStorage.getSmileySvg());
+    Gui.renderUI('.restart-svg', HtmlStorage.getSmileyImg());
 }
 function onHint(ev, game, idx) {
     console.log("idx:", idx);
@@ -217,7 +217,6 @@ function onMegaHint(ev, game) {
 function onOpenDialog(ev) {
     return __awaiter(this, void 0, void 0, function* () {
         const elScoreBoard = document.querySelector('dialog');
-        console.log("elScoreBoard:", elScoreBoard);
         const scoreBoard = yield getScoreBoard();
         Gui.renderScoreBoard(scoreBoard, elScoreBoard);
         const elCloseDialog = elScoreBoard.querySelector('.dialog-close');
@@ -233,7 +232,7 @@ function gameStart(game, coords) {
     game.startGame(coords);
     let life = game.life;
     Gui.renderUI('.life', life);
-    Gui.renderUI('.restart-svg', HtmlStorage.getWorriedSmiley());
+    Gui.renderUI('.restart', HtmlStorage.getGameSmileyImg());
     Gui.renderUI('.safe-click-txt', HtmlStorage.getHintsHtml(game.safeClicks));
 }
 function getScoreBoard() {
@@ -251,23 +250,20 @@ function getScoreBoard() {
     });
 }
 function gameOver(isWin, game) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (isWin) {
-            alert('Win');
-            const name = prompt('Enter your name') || '';
-            const newScore = game.getScore(name);
-            Gui.renderUI('.restart-svg', HtmlStorage.getHappySMileySvg());
-            const scores = yield getScoreBoard();
-            game.gameOver();
-            addScore(newScore);
-        }
-        else {
-            alert('Lose');
-            revealMines(game.board);
-            Gui.renderUI('.restart-svg', HtmlStorage.getSadSmileySvg());
-            game.gameOver();
-        }
-    });
+    if (isWin) {
+        alert('Win');
+        const name = prompt('Enter your name') || '';
+        const newScore = game.getScore(name);
+        Gui.renderUI('.restart', HtmlStorage.getHappySMileyImg());
+        game.gameOver();
+        addScore(newScore);
+    }
+    else {
+        alert('Lose');
+        revealMines(game.board);
+        Gui.renderUI('.restart', HtmlStorage.getSadSmileyImg());
+        game.gameOver();
+    }
 }
 function addScore(score) {
     return __awaiter(this, void 0, void 0, function* () {

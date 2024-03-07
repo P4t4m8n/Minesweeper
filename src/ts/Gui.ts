@@ -77,7 +77,9 @@ export class Gui {
     }
 
     static renderUI(selector: string, value: number | string): void {
+        console.log("value:", value)
         const el = document.querySelector(selector) as HTMLSpanElement
+        console.log("el:", el)
 
         if (typeof value === 'string') {
             el.innerHTML = value
