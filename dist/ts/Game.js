@@ -11,14 +11,14 @@ export class Game {
         this._hintCount = 3;
         this._shownCount = 0;
         this._markedCount = 0;
-        this._lifes = 3;
+        this._life = 3;
         this._safeClicks = 3;
-        this._isManuallMines = false;
+        this._isManualMines = false;
         this._placedMines = 0;
         this.restart(boardSize, mines);
     }
     startGame(coords) {
-        if (!this._isManuallMines)
+        if (!this._isManualMines)
             this._board.placeMines(this._mines, coords);
         this._board.countMinesAround();
         this._time = new Timer();
@@ -29,41 +29,28 @@ export class Game {
         return this._markedCount + this._shownCount === Math.pow(this._size, 2);
     }
     checkLose() {
-        return this._lifes <= 0;
+        return this._life <= 0;
     }
     gameOver(isWin) {
         this._time.stop();
+        if (isWin) {
+            const newScore = this.getScore();
+            this.gameWin(newScore);
+        }
     }
     getScore() {
-        return { name: '', time: this._time.getTime() };
+        return { name: '', time: this._time.elapsedTime };
     }
-    gameWin() {
+    gameWin(newScore) {
     }
-    // insertIntoTopTen(scores: Array<ScoreModel>, newScore:ScoreModel) {
-    //     scores.push(newScore);
-    //     scores.forEach(score => {
-    //         const [min, sec, ms] = score.time.split(/[:.]/);
-    //         // score.timeValue = parseInt(min) * 60000 + parseInt(sec) * 1000 + parseInt(ms);
-    //     });
-    //     // Sort the list based on the converted time values
-    //     scores.sort((a, b) => a.timeValue - b.timeValue);
-    //     // Remove the converted values to clean up
-    //     scores.forEach(score => {
-    //         delete score.timeValue;
-    //     });
-    //     // Check if the new score is within the top 10
-    //     if (scores.indexOf(newScore) < 10) {
-    //         // If the array length is greater than 10, truncate it to keep only the top 10
-    //         if (scores.length > 10) {
-    //             scores.length = 10;
-    //         }
-    //         return scores;
-    //     } else {
-    //         // If the new score did not make it to the top 10, remove it
-    //         scores.pop();
-    //         return false;
-    //     }
-    // }
+    isTopTen(scores, newScore) {
+        const idx = scores.findIndex(score => newScore.time >= newScore.time);
+        if (idx < 0)
+            return new Error('Problem with array scores');
+        if (idx < 10)
+            return idx;
+        return false;
+    }
     expandShown(rowIdx, colIdx) {
         let expandedCells = [];
         this._board.neighborsLoop({ row: rowIdx, col: colIdx }, (cell, i, j) => {
@@ -85,13 +72,13 @@ export class Game {
         this._size = boardSize;
         this._mines = mines;
         this._placedMines = 0;
-        this._isManuallMines = false;
+        this._isManualMines = false;
         this._isHint = false;
         this._megaHintsCount = 1;
         this._hintCount = 3;
-        this._lifes = 2;
+        this._life = 2;
         this._safeClicks = 3;
-        this._isManuallMines = false;
+        this._isManualMines = false;
         if (this._time) {
             this._time.stop();
             this._time.render();
@@ -102,7 +89,7 @@ export class Game {
     safeClick() {
         if (this._safeClicks <= 0)
             return 'No more safe clicks.';
-        const freeCells = Math.pow(this._size, 2) - this._shownCount - (this._mines - (3 - this._lifes));
+        const freeCells = Math.pow(this._size, 2) - this._shownCount - (this._mines - (3 - this._life));
         if (freeCells <= 0)
             return 'No more free cells.';
         let attempts = 0;
@@ -129,7 +116,7 @@ export class Game {
         const gameTemplate = new Game(this._size, this._mines);
         gameTemplate.shownCount = this._shownCount;
         gameTemplate.markedCount = this._markedCount;
-        gameTemplate.lifes = this._lifes;
+        gameTemplate.life = this._life;
         gameTemplate.board = this._board.clone();
         this._stack.push(gameTemplate);
     }
@@ -137,7 +124,7 @@ export class Game {
         const savedGame = this._stack.pop();
         this._shownCount = savedGame.shownCount;
         this._markedCount = savedGame.markedCount;
-        this._lifes = savedGame.lifes;
+        this._life = savedGame.life;
         this._board = savedGame.board;
     }
     getCellInstance(coords) {
@@ -145,7 +132,7 @@ export class Game {
     }
     //Getters
     get isOn() { return this._isOn; }
-    get lifes() { return this._lifes; }
+    get life() { return this._life; }
     get shownCount() { return this._shownCount; }
     get markedCount() { return this._markedCount; }
     get mines() { return this._mines; }
@@ -154,13 +141,13 @@ export class Game {
     get isHint() { return this._isHint; }
     get hintCount() { return this._hintCount; }
     get safeClicks() { return this._safeClicks; }
-    get isManuallMines() { return this._isManuallMines; }
+    get isManualMines() { return this._isManualMines; }
     get placedMines() { return this._placedMines; }
     get isMegaHint() { return this._isMegaHint; }
     get megaHintsCount() { return this._megaHintsCount; }
     //Setters
     set isOn(isOn) { this._isOn = isOn; }
-    set lifes(amount) { this._lifes = amount; }
+    set life(amount) { this._life = amount; }
     set shownCount(amount) { this._shownCount = amount; }
     set markedCount(amount) { this._markedCount = amount; }
     set mines(amount) { this._mines = amount; }
@@ -168,7 +155,7 @@ export class Game {
     set hintCount(amount) { this._hintCount = amount; }
     set isHint(isHint) { this._isHint = isHint; }
     set safeClicks(amount) { this._safeClicks = amount; }
-    set isManuallMines(isManuallMines) { this._isManuallMines = isManuallMines; }
+    set isManualMines(isManuallMines) { this._isManualMines = isManuallMines; }
     set placedMines(amount) { this._placedMines = amount; }
     set isMegaHint(isMegaHint) { this._isMegaHint = isMegaHint; }
     set megaHintsCount(amount) { this._megaHintsCount = amount; }
